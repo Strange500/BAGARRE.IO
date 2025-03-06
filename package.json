@@ -1,0 +1,24 @@
+{
+  "name": "bagarre.io",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode=production",
+    "watch": "webpack --mode=development --watch",
+    "start": "webpack serve --mode=development"
+  },
+  "author": "Milan Theron Benjamin Roget Mathys bollengier",
+  "homepage": "https://gitlab.univ-lille.fr/jsae/projets-2024-2025/groupe-g/equipe-1",
+  "devDependencies": {
+    "@babel/cli": "^7.23.9",
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "babel-loader": "^9.1.3",
+    "prettier": "^3.2.5",
+    "webpack": "^5.90.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.2"
+  }
+}
