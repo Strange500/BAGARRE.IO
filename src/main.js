@@ -1,8 +1,6 @@
 import { Player } from "./Player";
 import { GameMap } from "./Map";
 
-console.log('Salut, can vas ? 🫠');
-
 const canvas = document.querySelector('.gameCanvas');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
@@ -37,12 +35,6 @@ let yDirection = 0;
 
 function handleKeydown(event) {
     switch (event.key) {
-        case 'p':
-            lineWidth++;
-            break;
-        case 'm':
-            if (lineWidth > 0) lineWidth--;
-            break;
         case 'ArrowUp':
             yDirection = -1;
             break;

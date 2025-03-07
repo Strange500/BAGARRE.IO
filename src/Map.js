@@ -1,5 +1,3 @@
-
-
 export class GameMap {
     width;
     height;
@@ -40,7 +38,6 @@ export class GameMap {
         }
 
     }
-
 
     drawPlayer(context, playerPosition) {
         context.beginPath();
