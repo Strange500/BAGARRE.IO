@@ -11,9 +11,13 @@ function resampleCanvas() {
     canvas.height = canvas.clientHeight;
 }
 
+
+const viewLength = canvas.clientWidth;
+const viewHeight = canvas.clientHeight;
+
 const mapConfig = {
-    maxSizeX: 800,
-    maxSizeY: 600,
+    maxSizeX: 5000,
+    maxSizeY: 5000,
 };
 
 const map = new GameMap(mapConfig.maxSizeX, mapConfig.maxSizeY);
@@ -25,11 +29,9 @@ const playerPosition = {
 };
 
 
-const viewLength = canvas.clientWidth / 10;
-const viewHeight = canvas.clientHeight / 10;
 
 let lineWidth = 5;
-let speed = 5;
+let speed = 10;
 let xDirection = 0;
 let yDirection = 0;
 
@@ -70,29 +72,24 @@ function movePlayer() {
     // Boundary checking
     if (playerPosition.x < 0) {
         playerPosition.x = 0;
-    } else if (playerPosition.x > canvas.width - player.size) {
-        playerPosition.x = canvas.width - player.size;
+    } else if (playerPosition.x > map.width - player.size) {
+        playerPosition.x = map.width - player.size;
     }
 
     if (playerPosition.y < 0) {
         playerPosition.y = 0;
-    } else if (playerPosition.y > canvas.height - player.size) {
-        playerPosition.y = canvas.height - player.size;
+    } else if (playerPosition.y > map.height - player.size) {
+        playerPosition.y = map.height - player.size;
     }
 }
 
 function render() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.scale(10, 10);
+    context.clearRect(0, 0, map.width, map.height);
     context.translate(-playerPosition.x + viewLength / 2, -playerPosition.y + viewHeight / 2);
-    map.drawDecor(context, playerPosition.x - viewLength, playerPosition.y - viewHeight, viewLength * 10, viewHeight * 10);
+    map.drawDecor(context, playerPosition, viewLength, viewHeight);
     map.drawPlayer(context, playerPosition);
-
-    context.translate(playerPosition.x - viewLength / 2, playerPosition.y - viewHeight / 2);
-
     map.drawCoordinates(context, playerPosition);
     context.resetTransform();
-
     requestAnimationFrame(render);
 }
 
