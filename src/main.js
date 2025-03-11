@@ -38,15 +38,19 @@ let yDirection = 0;
 function handleKeydown(event) {
     switch (event.key) {
         case 'ArrowUp':
+        case'z' :
             yDirection = -1;
             break;
         case 'ArrowDown':
+        case's':
             yDirection = 1;
             break;
         case 'ArrowLeft':
+        case 'q':
             xDirection = -1;
             break;
-        case 'ArrowRight':
+        case 'ArrowRight': 
+        case'd':
             xDirection = 1;
             break;
     }
@@ -55,11 +59,15 @@ function handleKeydown(event) {
 function handleKeyup(event) {
     switch (event.key) {
         case 'ArrowUp':
+        case'z' :
         case 'ArrowDown':
+        case 's' :
             yDirection = 0;
             break;
         case 'ArrowLeft':
+        case 'q' :
         case 'ArrowRight':
+        case 'd' :
             xDirection = 0;
             break;
     }
@@ -93,7 +101,13 @@ function render() {
     requestAnimationFrame(render);
 }
 
+function handleCanvasMouseDown(event) {
+    context.beginPath();
+	
+}
+
 document.addEventListener('keydown', handleKeydown);
 document.addEventListener('keyup', handleKeyup);
+canvas.addEventListener('mousedown', handleCanvasMouseDown);
 setInterval(movePlayer, 1000 / 60);
 requestAnimationFrame(render);
