@@ -29,3 +29,36 @@ h1 em {
     font-weight: bold;
     color: #777;
 }
+
+.scoreboard {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 200px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
+}
+
+.scoreboard table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.scoreboard th, .scoreboard td {
+    padding: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.scoreboard th {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.scoreboard tr:last-child td {
+    border-bottom: none;
+}
