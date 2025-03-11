@@ -37,9 +37,26 @@ export class GameMap {
 
     }
 
-    drawPlayer(context, playerPosition) {
+    drawFood(context, foods, player, viewLength, viewHeight) {
+        const minX = player.x - viewLength;
+        const maxX = player.x + viewLength;
+        const minY = player.y - viewHeight;
+        const maxY = player.y + viewHeight;
+        foods.forEach(food => {
+            if (food.x > minX && food.x < maxX && food.y > minY && food.y < maxY) {
+                context.beginPath();
+                context.arc(food.x, food.y, food.size, 0, 2 * Math.PI);
+                context.fillStyle = 'blue';
+                context.fill();
+                context.strokeStyle = 'black';
+                context.stroke();
+            }
+        });
+    }
+
+    drawPlayer(context, playerPosition, size) {
         context.beginPath();
-        context.arc(playerPosition.x, playerPosition.y, 10, 0, 2 * Math.PI);
+        context.arc(playerPosition.x, playerPosition.y, size, 0, 2 * Math.PI);
         context.fillStyle = 'red';
         context.fill();
         context.strokeStyle = 'green';
