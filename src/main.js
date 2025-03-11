@@ -1,5 +1,6 @@
 import { Player } from "./Player";
 import { GameMap } from "./Map";
+import { Food } from './Food';
 
 const canvas = document.querySelector('.gameCanvas');
 const context = canvas.getContext('2d');
@@ -22,12 +23,21 @@ const mapConfig = {
 
 const map = new GameMap(mapConfig.maxSizeX, mapConfig.maxSizeY);
 
-const player = new Player('Player 1');
-const playerPosition = {
-    x: map.width / 2,
-    y: map.height / 2,
-};
+const player = new Player('Player 1',map.width / 2, map.height / 2);
 
+const foods = [
+]
+
+
+function genRandomFood() {
+  const x = Math.floor(Math.random() * map.width);
+  const y = Math.floor(Math.random() * map.height);
+  return new Food(0.5, x, y);
+}
+
+for (let i = 0; i < 1000; i++) {
+  foods.push(genRandomFood());
+}
 
 
 let lineWidth = 5;
@@ -73,41 +83,63 @@ function handleKeyup(event) {
     }
 }
 
-function movePlayer() {
-    playerPosition.x += speed * xDirection;
-    playerPosition.y += speed * yDirection;
+function updateGame() {
+    movePlayer();
+    handleBonus(player, foods);
+}
 
-    // Boundary checking
-    if (playerPosition.x < 0) {
-        playerPosition.x = 0;
-    } else if (playerPosition.x > map.width - player.size) {
-        playerPosition.x = map.width - player.size;
+function movePlayer() {
+    player.x += speed * xDirection;
+    player.y += speed * yDirection;
+
+    if (player.x < 0) {
+        player.x = 0;
+    } else if (player.x > map.width - player.size) {
+        player.x = map.width - player.size;
     }
 
-    if (playerPosition.y < 0) {
-        playerPosition.y = 0;
-    } else if (playerPosition.y > map.height - player.size) {
-        playerPosition.y = map.height - player.size;
+    if (player.y < 0) {
+        player.y = 0;
+    } else if (player.y > map.height - player.size) {
+        player.y = map.height - player.size;
     }
 }
 
 function render() {
     context.clearRect(0, 0, map.width, map.height);
-    context.translate(-playerPosition.x + viewLength / 2, -playerPosition.y + viewHeight / 2);
-    map.drawDecor(context, playerPosition, viewLength, viewHeight);
-    map.drawPlayer(context, playerPosition);
-    map.drawCoordinates(context, playerPosition);
+
+    const offsetX = -player.x + viewLength / 2;
+    const offsetY = -player.y + viewHeight / 2;
+    context.translate(offsetX, offsetY);
+
+    map.drawDecor(context, player, viewLength, viewHeight);
+
+    map.drawFood(context, foods, player, viewLength, viewHeight);
+
+    map.drawPlayer(context, player, player.size);
+    map.drawCoordinates(context, player);
     context.resetTransform();
     requestAnimationFrame(render);
 }
 
 function handleCanvasMouseDown(event) {
     context.beginPath();
-	
 }
+
+function handleBonus() {
+    foods.forEach((food, index) => {
+        if (Math.abs(player.x - food.x) < player.size && Math.abs(player.y - food.y) < player.size) {
+            player.size += food.bonus;
+            foods.splice(index, 1);
+        }
+    }
+    )
+}
+
+
 
 document.addEventListener('keydown', handleKeydown);
 document.addEventListener('keyup', handleKeyup);
 canvas.addEventListener('mousedown', handleCanvasMouseDown);
-setInterval(movePlayer, 1000 / 60);
+setInterval(updateGame, 1000 / 60);
 requestAnimationFrame(render);
