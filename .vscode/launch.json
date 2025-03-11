@@ -17,7 +17,7 @@
 			"request": "launch",
 			"url": "http://localhost:8000",
 			"webRoot": "${workspaceFolder}",
-			"runtimeExecutable": "/bin/chromium"
+			"runtimeExecutable": "c:/Program Files/Chromium/Application/chrome.exe"
 		},
 		{
 			"name": "Firefox Debug",

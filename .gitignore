@@ -2,4 +2,3 @@
 node_modules
 *.zip
 build
-.vscode/launch.json
