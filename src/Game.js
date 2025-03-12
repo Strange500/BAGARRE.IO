@@ -1,8 +1,12 @@
-import { Player } from './Player.js';
-import { GameMap } from './Map.js';
-import { updateScoreboard, simulateScores } from './ScoreHandler.js';
-import { players } from './PlayerHandler.js';
-import { handleKeydown, handleKeyup, movePlayer } from './MovementPlayerHandler.js';
+import { Player } from './class/Player.js';
+import { GameMap } from './class/Map.js';
+import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
+import { players } from './handlers/PlayerHandler.js';
+import {
+	handleKeydown,
+	handleKeyup,
+	movePlayer,
+} from './handlers/MovementPlayerHandler.js';
 
 const canvas = document.querySelector('.gameCanvas');
 const context = canvas.getContext('2d');
