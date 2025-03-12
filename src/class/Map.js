@@ -8,32 +8,30 @@ export class GameMap {
     }
 
     drawCoordinates(context, playerPosition) {
-        context.moveTo(0, 0);
+        context.moveTo(playerPosition.x, playerPosition.y);
         context.font = '20px Arial';
         context.fillStyle = 'black';
-        context.fillText(`x: ${playerPosition.x}, y: ${playerPosition.y}`, 10, 20);
-
+        context.fillText(`x: ${playerPosition.x}, y: ${playerPosition.y}`, playerPosition.x, playerPosition.y);
     }
 
-    drawDecor(context, fromX, fromY, width, height) {
-        context.moveTo(0, 0);
-        for (let i = 0; i < this.width; i += 100) {
-            if (i < fromX) continue;
+    drawDecor(context, playerPosition, width, height) {
+        const { x, y} = playerPosition;
+        const yLimit = Math.min(y + height, this.height);
+        const xLimit = Math.min(x + width, this.width);
+        const xStart = Math.max(x - width, 0);
+        const yStart = Math.max(y - height, 0);
+        for (let i = 0; i < yLimit; i+=100) {
+            if (i < y - height) continue;
             context.beginPath();
-            context.moveTo(i, fromY);
-            context.lineTo(i, fromY + height);
-            context.strokeStyle = 'black';
-            context.lineWidth = 1;
+            context.moveTo(xStart, i);
+            context.lineTo(xLimit, i);
             context.stroke();
         }
-
-        for (let i = 0; i < this.height; i += 100) {
-            if (i < fromY) continue
+        for (let i = 0; i <xLimit; i+=100) {
+            if (i < x - width) continue;
             context.beginPath();
-            context.moveTo(fromX, i);
-            context.lineTo(fromX + width, i);
-            context.strokeStyle = 'black';
-            context.lineWidth = 1;
+            context.moveTo(i, yStart);
+            context.lineTo(i, yLimit);
             context.stroke();
         }
 
