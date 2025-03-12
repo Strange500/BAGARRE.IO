@@ -36,27 +36,24 @@ const viewHeight = canvas.clientHeight / 10;
 
 function render() {
 	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.save();
+
 	context.scale(10, 10);
 	context.translate(
 		-playerPosition.x + viewLength / 2,
 		-playerPosition.y + viewHeight / 2
 	);
+
 	map.drawDecor(
 		context,
-		playerPosition.x - viewLength,
-		playerPosition.y - viewHeight,
+		{ x: playerPosition.x - viewLength, y: playerPosition.y - viewHeight },
 		viewLength * 10,
 		viewHeight * 10
 	);
 	map.drawPlayer(context, playerPosition);
-
-	context.translate(
-		playerPosition.x - viewLength / 2,
-		playerPosition.y - viewHeight / 2
-	);
-
 	map.drawCoordinates(context, playerPosition);
-	context.resetTransform();
+
+	context.restore();
 
 	requestAnimationFrame(render);
 }
