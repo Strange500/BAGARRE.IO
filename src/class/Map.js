@@ -54,9 +54,9 @@ export class GameMap {
         });
     }
 
-    drawPlayer(context, playerPosition, size) {
+    drawPlayer(context, player) {
         context.beginPath();
-        context.arc(playerPosition.x, playerPosition.y, size, 0, 2 * Math.PI);
+        context.arc(player.x, player.y, player.size, 0, 2 * Math.PI);
         context.fillStyle = 'red';
         context.fill();
         context.strokeStyle = 'green';

@@ -5,7 +5,7 @@ export class Food {
 
 
 	constructor(bonus,  x,  y) {
-		this.bonus = bonus;
+		this.bonus = bonus* 10;
 		this.size = bonus*10;
 		this.x = x;
 		this.y = y;
