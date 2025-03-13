@@ -15,7 +15,7 @@ export function updateScoreboard(players) {
 
 export function simulateScores(players) {
 	players.forEach(player => {
-		const randomIncrease = Math.floor(Math.random() * 5);
+		const randomIncrease = Math.floor(1);
 		player.score.addFoodScore(randomIncrease);
 	});
 }

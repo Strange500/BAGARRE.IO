@@ -5,6 +5,8 @@ export class Player {
 	score;
 	x;
 	y;
+	xDirection;
+	yDirection;
 
 	constructor(name, x, y) {
 		this.name = name;
@@ -12,6 +14,8 @@ export class Player {
 		this.score = new Score();
 		this.x =  x;
 		this.y = y;
+		this.xDirection = 0;
+		this.yDirection = 0;
 	}
 
 	increaseSize(amount) {

@@ -1,24 +1,24 @@
-export let xDirection = 0;
-export let yDirection = 0;
+import {player} from "../Game";
+
 export let speed = 5;
 
 export function handleKeydown(event) {
 	switch (event.key) {
 		case 'ArrowUp':
 		case 'z':
-			yDirection = -1;
+			player.yDirection = -1;
 			break;
 		case 'ArrowDown':
 		case 's':
-			yDirection = 1;
+			player.yDirection = 1;
 			break;
 		case 'ArrowLeft':
 		case 'q':
-			xDirection = -1;
+			player.xDirection = -1;
 			break;
 		case 'ArrowRight':
 		case 'd':
-			xDirection = 1;
+			player.xDirection = 1;
 			break;
 	}
 }
@@ -29,20 +29,20 @@ export function handleKeyup(event) {
 		case 'z':
 		case 'ArrowDown':
 		case 's':
-			yDirection = 0;
+			player.yDirection = 0;
 			break;
 		case 'ArrowLeft':
 		case 'q':
 		case 'ArrowRight':
 		case 'd':
-			xDirection = 0;
+			player.xDirection = 0;
 			break;
 	}
 }
 
 export function movePlayer(player, map) {
-	player.x += speed * xDirection;
-	player.y += speed * yDirection;
+	player.x += speed * player.xDirection;
+	player.y += speed * player.yDirection;
 
 	if (player.x < 0) {
 		player.x = 0;

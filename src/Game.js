@@ -8,10 +8,12 @@ import {
 	movePlayer,
 } from './handlers/MovementPlayerHandler.js';
 import { Food } from './Food';
+import {Bot} from "./class/Bot";
 
 const canvas = document.querySelector('.gameCanvas');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
+const MAX_JOUEURS = 10;
 canvasResizeObserver.observe(canvas);
 
 function resampleCanvas() {
@@ -30,7 +32,7 @@ const viewHeight = canvas.clientHeight;
 
 const map = new GameMap(mapConfig.maxSizeX, mapConfig.maxSizeY);
 
-const player = new Player('GigaChad',map.width / 2, map.height / 2);
+export const player = new Player('GigaChad',map.width / 2, map.height / 2);
 
 
 const foods = [
@@ -45,6 +47,13 @@ function genRandomFood() {
 
 for (let i = 0; i < 1000; i++) {
 	foods.push(genRandomFood());
+}
+
+const bots = [];
+for (let i = players.length; i < MAX_JOUEURS; i++) {
+	const bot = new Bot(`Bot ${i}`, Math.random() * map.width, Math.random() * map.height);
+	bots.push(bot);
+	players.push(bot);
 }
 
 players.push(player);
@@ -82,9 +91,15 @@ function handleBonus() {
 	)
 }
 
+
+
 function updateGame() {
 	movePlayer(player, map);
 	handleBonus(player, foods);
+	bots.forEach(bot => {
+		bot.nextMove();
+		movePlayer(bot, map);
+	});
 	players.sort((a, b) => a.size - b.size);
 }
 
