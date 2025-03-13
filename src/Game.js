@@ -9,6 +9,7 @@ import {
 } from './handlers/MovementPlayerHandler.js';
 import { Food } from './Food';
 import {Bot} from "./class/Bot";
+import {Circle, Quadtree} from "@timohausmann/quadtree-ts";
 
 const canvas = document.querySelector('.gameCanvas');
 const context = canvas.getContext('2d');
@@ -27,16 +28,18 @@ const mapConfig = {
 };
 
 
-const viewLength = canvas.clientWidth;
-const viewHeight = canvas.clientHeight;
+export const viewLength = canvas.clientWidth;
+export const viewHeight = canvas.clientHeight;
 
 const map = new GameMap(mapConfig.maxSizeX, mapConfig.maxSizeY);
 
 export const player = new Player('GigaChad',map.width / 2, map.height / 2);
 
-
-const foods = [
-]
+const foodQuadTree = new Quadtree({
+	width: map.width,
+	height: map.height,
+	maxLevels: 4,
+});
 
 
 function genRandomFood() {
@@ -46,7 +49,7 @@ function genRandomFood() {
 }
 
 for (let i = 0; i < 1000; i++) {
-	foods.push(genRandomFood());
+	foodQuadTree.insert(genRandomFood());
 }
 
 const bots = [];
@@ -63,17 +66,16 @@ let nbFrame = 0;
 function render() {
 	context.clearRect(0, 0, canvas.width, canvas.height);
 
-	const offsetX = -player.x + viewLength / 2;
-	const offsetY = -player.y + viewHeight / 2;
+	const offsetX = -player.x + viewLength / 2 ;
+	const offsetY = -player.y + viewHeight / 2 ;
 	context.translate(offsetX, offsetY);
 	map.drawDecor(context, player, viewLength / 2, viewHeight / 2);
-	map.drawFood(context, foods, player, viewLength / 2, viewHeight / 2);
+	map.drawFood(context, foodQuadTree, player, viewLength / 2, viewHeight / 2);
 
 	players.forEach((p) => {
 		if (map.drawPlayer(context, p, player, viewLength / 2, viewHeight / 2)) {
 			map.drawName(context, p);
 		}
-
 	});
 
 
@@ -84,13 +86,18 @@ function render() {
 }
 
 function handleBonus(p) {
-	foods.forEach((food, index) => {
-		const distance = Math.hypot(p.x - food.x, p.y - food.y);
-		if (distance < p.size) {
-			p.addFood(food.size);
-			foods.splice(index, 1);
-			foods.push(genRandomFood());
-		}
+	foodQuadTree.retrieve(new Circle({
+		x: p.x,
+		y: p.y,
+		r: p.size,
+	})).forEach(food => {
+		const deltaX = food.x - p.x;
+		const deltaY = food.y - p.y;
+		const distance = Math.hypot(deltaX, deltaY);
+		if (distance > p.size) return;
+		p.addFood(food.bonus);
+		foodQuadTree.remove(food);
+		foodQuadTree.insert(genRandomFood());
 	});
 }
 
@@ -115,7 +122,7 @@ function handleKill(p, players) {
 
 function updateGame() {
 	bots.forEach(bot => {
-		bot.nextMove(foods, players);
+		bot.nextMove(foodQuadTree, players);
 	});
 	players.forEach(p => {
 		movePlayer(p, map);
@@ -141,6 +148,10 @@ setInterval(() => {
 setInterval(() => {
 	console.log('FPS:', nbFrame);
 	nbFrame = 0;
+	const start = performance.now();
+	handleBonus(player);
+	const end = performance.now();
+	console.log('Time to handle bonus:', end - start);
 	simulateScores(players);
 	updateScoreboard(players);
 }, 1000);
