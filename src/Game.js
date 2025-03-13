@@ -56,7 +56,6 @@ function render() {
 	const offsetX = -player.x + viewLength / 2;
 	const offsetY = -player.y + viewHeight / 2;
 	context.translate(offsetX, offsetY);
-
 	map.drawDecor(context, player, viewLength, viewHeight);
 
 	map.drawFood(context, foods, player, viewLength, viewHeight);
@@ -66,7 +65,6 @@ function render() {
 	});
 
 	map.drawCoordinates(context, player);
-
 
 	context.resetTransform();
 
@@ -87,6 +85,7 @@ function handleBonus() {
 function updateGame() {
 	movePlayer(player, map);
 	handleBonus(player, foods);
+	players.sort((a, b) => a.size - b.size);
 }
 
 function handleCanvasMouseDown(event) {
