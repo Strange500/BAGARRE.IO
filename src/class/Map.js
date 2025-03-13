@@ -71,6 +71,8 @@ export class GameMap {
             context.fill();
             context.strokeStyle = 'green';
             context.stroke();
+            return true;
         }
+        return false;
     }
 }

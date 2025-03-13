@@ -58,6 +58,7 @@ for (let i = players.length; i < MAX_JOUEURS; i++) {
 
 players.push(player);
 
+let nbFrame = 0;
 
 function render() {
 	context.clearRect(0, 0, canvas.width, canvas.height);
@@ -66,18 +67,19 @@ function render() {
 	const offsetY = -player.y + viewHeight / 2;
 	context.translate(offsetX, offsetY);
 	map.drawDecor(context, player, viewLength / 2, viewHeight / 2);
-
 	map.drawFood(context, foods, player, viewLength / 2, viewHeight / 2);
 
 	players.forEach((p) => {
-		map.drawPlayer(context, p, player, viewLength / 2, viewHeight / 2);
-		map.drawName(context, p);
+		if (map.drawPlayer(context, p, player, viewLength / 2, viewHeight / 2)) {
+			map.drawName(context, p);
+		}
+
 	});
 
 
 	context.resetTransform();
 
-
+	nbFrame++;
 	requestAnimationFrame(render);
 }
 
@@ -94,14 +96,19 @@ function handleBonus(p) {
 
 
 function handleKill(p, players) {
-	players.forEach((pl, index) => {
-		const distance = Math.hypot(p.x - pl.x, p.y - pl.y);
-			if (distance < p.size && p.size > pl.size) {
-				p.addKill(pl.size);
-				players.splice(index, 1);
-			}
+	for (let i = players.length - 1; i >= 0; i--) {
+		const other = players[i];
+		if (other === p) continue;
+
+		const deltaXPlayer = other.x - p.x;
+		const deltaYPlayer = other.y - p.y;
+		const distanceToPlayer = Math.hypot(deltaXPlayer, deltaYPlayer);
+
+		if (p.size > other.size && distanceToPlayer < p.size) {
+			p.addKill(other.size);
+			players.splice(i, 1);
 		}
-	)
+	}
 }
 
 
@@ -132,6 +139,8 @@ setInterval(() => {
 }, 1000 / 60);
 
 setInterval(() => {
+	console.log('FPS:', nbFrame);
+	nbFrame = 0;
 	simulateScores(players);
 	updateScoreboard(players);
 }, 1000);
