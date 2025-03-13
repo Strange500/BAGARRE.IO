@@ -15,14 +15,17 @@ export class Bot extends Player{
             let deltaXNearestPlayer = 0;
             let deltaYNearestPlayer = 0;
             let distanceToNearestPlayer = 1000000000;
+            let nearestPlayer = null;
             players.forEach(p => {
-                const deltaXp = player.x - this.x;
-                const deltaYp = player.y - this.y;
+                if (p === this) return;
+                const deltaXp = p.x - this.x;
+                const deltaYp = p.y - this.y;
                 const distanceToPlayer = Math.sqrt(deltaXp * deltaXp + deltaYp * deltaYp);
                 if (distanceToPlayer < distanceToNearestPlayer && this.size !== p.size) {
                     deltaXNearestPlayer = deltaXp;
                     deltaYNearestPlayer = deltaYp;
                     distanceToNearestPlayer = distanceToPlayer;
+                    nearestPlayer = p;
                 }
             })
 
@@ -33,11 +36,11 @@ export class Bot extends Player{
                 // Normalize direction if within threshold
                 const normalizedDistance = Math.sqrt(deltaXNearestPlayer * deltaXNearestPlayer + deltaYNearestPlayer * deltaYNearestPlayer);
                 if (normalizedDistance > 0) {
-                    if (this.size > player.size) {
+                    if (this.size > nearestPlayer.size) {
                         this.xDirection = (deltaXNearestPlayer / normalizedDistance);
                         this.yDirection = (deltaYNearestPlayer / normalizedDistance);
 
-                    }else if (this.size < player.size) {
+                    }else if (this.size < nearestPlayer.size) {
                         this.xDirection = -(deltaXNearestPlayer / normalizedDistance);
                         this.yDirection = -(deltaYNearestPlayer / normalizedDistance);
 
