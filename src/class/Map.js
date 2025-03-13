@@ -7,11 +7,11 @@ export class GameMap {
         this.height = height;
     }
 
-    drawCoordinates(context, playerPosition) {
-        context.moveTo(playerPosition.x, playerPosition.y);
+    drawName(context, player) {
+        context.moveTo(player.x, player.y);
         context.font = '20px Arial';
         context.fillStyle = 'black';
-        context.fillText(`x: ${playerPosition.x}, y: ${playerPosition.y}`, playerPosition.x, playerPosition.y);
+        context.fillText(player.name, player.x, player.y);
     }
 
     drawDecor(context, playerPosition, width, height) {
@@ -54,12 +54,23 @@ export class GameMap {
         });
     }
 
-    drawPlayer(context, player) {
-        context.beginPath();
-        context.arc(player.x, player.y, player.size, 0, 2 * Math.PI);
-        context.fillStyle = 'red';
-        context.fill();
-        context.strokeStyle = 'green';
-        context.stroke();
+    drawPlayer(context, player, mainPlayer, viewLength, viewHeight) {
+        const minX = mainPlayer.x - viewLength;
+        const maxX = mainPlayer.x + viewLength;
+        const minY = mainPlayer.y - viewHeight;
+        const maxY = mainPlayer.y + viewHeight;
+
+        // Check if the player is visible based on their position and size
+        const playerIsXVisible = (player.x - player.size < maxX) && (player.x + player.size > minX);
+        const playerIsYVisible = (player.y - player.size < maxY) && (player.y + player.size > minY);
+
+        if (playerIsXVisible && playerIsYVisible) {
+            context.beginPath();
+            context.arc(player.x, player.y, player.size, 0, 2 * Math.PI);
+            context.fillStyle = 'red';
+            context.fill();
+            context.strokeStyle = 'green';
+            context.stroke();
+        }
     }
 }
