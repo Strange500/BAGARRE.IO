@@ -12,6 +12,7 @@ import {Bot} from "./class/Bot";
 import {Circle, Quadtree} from "@timohausmann/quadtree-ts";
 
 const canvas = document.querySelector('.gameCanvas');
+const fpsDiv = document.querySelector('#fps');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 const MAX_JOUEURS = 10;
@@ -146,12 +147,11 @@ setInterval(() => {
 }, 1000 / 60);
 
 setInterval(() => {
-	console.log('FPS:', nbFrame);
+	fpsDiv.innerHTML = "FPS: " + nbFrame;
 	nbFrame = 0;
 	const start = performance.now();
 	handleBonus(player);
 	const end = performance.now();
-	console.log('Time to handle bonus:', end - start);
 	simulateScores(players);
 	updateScoreboard(players);
 }, 1000);
