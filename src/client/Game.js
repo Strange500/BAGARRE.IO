@@ -19,7 +19,6 @@ const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
-const MAX_JOUEURS = 10;
 canvasResizeObserver.observe(canvas);
 
 function resampleCanvas() {
@@ -57,12 +56,7 @@ for (let i = 0; i < 1000; i++) {
 	foodQuadTree.insert(genRandomFood());
 }
 
-const bots = [];
-for (let i = players.length; i < MAX_JOUEURS; i++) {
-	const bot = new Bot(`Bot ${i}`, Math.random() * map.width, Math.random() * map.height);
-	//bots.push(bot);
-	//players.push(bot);
-}
+
 
 //players.push(player);
 
@@ -83,7 +77,6 @@ function render() {
 		}
 	});
 
-
 	context.resetTransform();
 
 	nbFrame++;
@@ -101,6 +94,7 @@ function handleBonus(p) {
 		const distance = Math.hypot(deltaX, deltaY);
 		if (distance > p.size) return;
 		p.addFood(food.bonus);
+		socket.emit('foodEaten', p);
 		foodQuadTree.remove(food);
 		foodQuadTree.insert(genRandomFood());
 	});
@@ -126,9 +120,7 @@ function handleKill(p, players) {
 
 
 function updateGame() {
-	bots.forEach(bot => {
-		bot.nextMove(foodQuadTree, players);
-	});
+
 	players.forEach(p => {
 		movePlayer(p, map);
 		handleBonus(p);
@@ -194,6 +186,13 @@ socket.on('connect', () => {
 		if (!movedPlayer) return;
 		movedPlayer.x = p.x;
 		movedPlayer.y = p.y;
+	});
+
+	socket.on('playerSizeChanged', (p) => {
+		console.log('Received player size changed', p);
+		const movedPlayer = players.find((player) => player.id === p.id);
+		if (!movedPlayer) return;
+		movedPlayer.size = p.size;
 	});
 });
 

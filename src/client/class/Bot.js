@@ -1,9 +1,12 @@
-import {Player} from "./Player";
+import {Player} from "./Player.js";
 import {Rectangle} from "@timohausmann/quadtree-ts";
-import {viewHeight, viewLength} from "../Game";
+
+
+const viewLength = 500;
+const viewHeight = 500;
 export class Bot extends Player{
-    constructor(name, x, y) {
-        super(name, x, y);
+    constructor(name, x, y, id) {
+        super(name, x, y, id);
         this.x =  x;
         this.y = y;
     }
