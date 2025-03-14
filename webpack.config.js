@@ -2,12 +2,12 @@ const path = require('path');
 
 module.exports = {
 	// Fichier d'entrée :
-	entry: './src/Game.js',
+	entry: './src/client/Game.js',
 	// Fichier de sortie :
 	output: {
-		path: path.resolve(__dirname, './build'),
+		path: path.resolve(__dirname, './public/'),
 		filename: 'main.bundle.js',
-		publicPath: '/build/',
+		publicPath: '/',
 	},
 	// compatibilité anciens navigateurs (si besoin du support de IE11 ou android 4.4)
 	target: ['web', 'es5'],
@@ -28,7 +28,7 @@ module.exports = {
 	devServer: {
 		hot: false, // désactivation hot-reload (inutilisé)
 		static: {
-			directory: './', // racine du serveur http
+			directory: './public', // racine du serveur http
 			watch: {
 				// optimisation live-reload
 				ignored: 'node_modules',
