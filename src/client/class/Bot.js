@@ -12,8 +12,6 @@ export class Bot extends Player{
     }
 
     nextMove(foodQuadTree, players) {
-        const latency = Math.random() * 1000 + 200; // Random latency between 200 and 1200 ms
-        setTimeout(() => {
             let deltaXNearestPlayer = 0;
             let deltaYNearestPlayer = 0;
             let distanceToNearestPlayer = Infinity;
@@ -23,7 +21,7 @@ export class Bot extends Player{
                 const deltaXp = p.x - this.x;
                 const deltaYp = p.y - this.y;
                 const distanceToPlayer = Math.sqrt(deltaXp * deltaXp + deltaYp * deltaYp);
-                if (distanceToPlayer < distanceToNearestPlayer && this.size !== p.size) {
+                if (distanceToPlayer < distanceToNearestPlayer) {
                     deltaXNearestPlayer = deltaXp;
                     deltaYNearestPlayer = deltaYp;
                     distanceToNearestPlayer = distanceToPlayer;
@@ -31,18 +29,17 @@ export class Bot extends Player{
                 }
             })
 
-            const distanceThreshold = 300; // Threshold to chase the player
 
+            const distanceThreshold = 300; // Threshold to chase the player
             if (distanceToNearestPlayer <= distanceThreshold) {
-                const normalizedDistance = Math.sqrt(deltaXNearestPlayer * deltaXNearestPlayer + deltaYNearestPlayer * deltaYNearestPlayer);
-                if (normalizedDistance > 0) {
+                if (distanceToNearestPlayer > 0) {
                     if (this.size > nearestPlayer.size) {
-                        this.xDirection = (deltaXNearestPlayer / normalizedDistance);
-                        this.yDirection = (deltaYNearestPlayer / normalizedDistance);
+                        this.xDirection = (deltaXNearestPlayer / distanceToNearestPlayer);
+                        this.yDirection = (deltaYNearestPlayer / distanceToNearestPlayer);
 
                     }else if (this.size < nearestPlayer.size) {
-                        this.xDirection = -(deltaXNearestPlayer / normalizedDistance);
-                        this.yDirection = -(deltaYNearestPlayer / normalizedDistance);
+                        this.xDirection = -(deltaXNearestPlayer / distanceToNearestPlayer);
+                        this.yDirection = -(deltaYNearestPlayer / distanceToNearestPlayer);
 
                     }
                 } else {
@@ -84,7 +81,6 @@ export class Bot extends Player{
                 }
 
             }
-        }, latency);
     }
 
     }

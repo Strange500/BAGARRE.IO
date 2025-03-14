@@ -40,6 +40,20 @@ export function handleKeyup(event) {
 }
 
 export function movePlayer(player, map) {
-	player.x += player.speed * player.xDirection;
-	player.y += player.speed * player.yDirection;
+	const newX = player.x + (player.speed * player.xDirection);
+	const newY = player.y + (player.speed * player.yDirection);
+	if (newX < 0) {
+		player.x = 0;
+	}else if (newX > map.width) {
+		player.x = map.width;
+	}else {
+		player.x = newX;
+	}
+	if (newY < 0) {
+		player.y = 0;
+	}else if (newY > map.height) {
+		player.y = map.height;
+	} else {
+		player.y = newY;
+	}
 }

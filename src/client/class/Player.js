@@ -9,6 +9,7 @@ export class Player {
 	xDirection;
 	yDirection;
 	speed;
+	ready;
 
 	constructor(name, x, y, id) {
 		this.name = name;
@@ -20,6 +21,7 @@ export class Player {
 		this.yDirection = 0;
 		this.id = id;
 		this.speed = 5;
+		this.ready = false;
 	}
 
 	increaseSize(amount) {
