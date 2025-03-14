@@ -75,3 +75,30 @@ h1 em {
     text-align: center;
     font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
 }
+
+.playersheet {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
+}
+
+.playersheet table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.playersheet th {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.playersheet tr:last-child td {
+    border-bottom: none;
+}
