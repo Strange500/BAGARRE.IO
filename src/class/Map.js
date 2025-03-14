@@ -1,3 +1,5 @@
+import {Rectangle} from "@timohausmann/quadtree-ts";
+
 export class GameMap {
     width;
     height;
@@ -34,23 +36,22 @@ export class GameMap {
             context.lineTo(i, yLimit);
             context.stroke();
         }
-
     }
 
-    drawFood(context, foods, player, viewLength, viewHeight) {
-        const minX = player.x - viewLength;
-        const maxX = player.x + viewLength;
-        const minY = player.y - viewHeight;
-        const maxY = player.y + viewHeight;
+    drawFood(context, foodQuadTree, player, viewLength, viewHeight) {
+        const foods = foodQuadTree.retrieve(new Rectangle({
+            x: player.x - viewLength,
+            y: player.y - viewHeight,
+            width: viewLength * 2,
+            height: viewHeight * 2
+        }));
         foods.forEach(food => {
-            if (food.x > minX && food.x < maxX && food.y > minY && food.y < maxY) {
                 context.beginPath();
                 context.arc(food.x, food.y, food.size, 0, 2 * Math.PI);
                 context.fillStyle = 'blue';
                 context.fill();
                 context.strokeStyle = 'black';
                 context.stroke();
-            }
         });
     }
 

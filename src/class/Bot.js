@@ -1,4 +1,6 @@
 import {Player} from "./Player";
+import {Rectangle} from "@timohausmann/quadtree-ts";
+import {viewHeight, viewLength} from "../Game";
 export class Bot extends Player{
     constructor(name, x, y) {
         super(name, x, y);
@@ -6,13 +8,12 @@ export class Bot extends Player{
         this.y = y;
     }
 
-    nextMove(foods, players) {
+    nextMove(foodQuadTree, players) {
         const latency = Math.random() * 1000 + 200; // Random latency between 200 and 1200 ms
         setTimeout(() => {
-            // Calculate distances to the player
             let deltaXNearestPlayer = 0;
             let deltaYNearestPlayer = 0;
-            let distanceToNearestPlayer = 1000000000;
+            let distanceToNearestPlayer = Infinity;
             let nearestPlayer = null;
             players.forEach(p => {
                 if (p === this) return;
@@ -27,11 +28,9 @@ export class Bot extends Player{
                 }
             })
 
-            // Define thresholds
             const distanceThreshold = 300; // Threshold to chase the player
 
             if (distanceToNearestPlayer <= distanceThreshold) {
-                // Normalize direction if within threshold
                 const normalizedDistance = Math.sqrt(deltaXNearestPlayer * deltaXNearestPlayer + deltaYNearestPlayer * deltaYNearestPlayer);
                 if (normalizedDistance > 0) {
                     if (this.size > nearestPlayer.size) {
@@ -49,25 +48,34 @@ export class Bot extends Player{
                 }
             }
             else {
-                if (foods.length === 0) {
-                    this.xDirection = 0;
-                    this.yDirection = 0;
-                    return;
+                let nearestFood = null;
+                let deltaXFood = 0;
+                let deltaYFood = 0;
+                let distance = Infinity;
+                const nearestFoods = foodQuadTree.retrieve(
+                    new Rectangle({
+                        x: this.x - viewLength,
+                        y: this.y - viewHeight,
+                        width: viewLength * 2,
+                        height: viewHeight * 2
+                    })
+                )
+                nearestFoods.forEach(food => {
+                    const deltaX = food.x - this.x;
+                    const deltaY = food.y - this.y;
+                    const d = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    if (d < distance) {
+                        deltaXFood = deltaX;
+                        deltaYFood = deltaY;
+                        distance = d;
+                        nearestFood = food;
+                    }
+                })
+                if (distance > 0) {
+                    this.xDirection = deltaXFood / distance;
+                    this.yDirection = deltaYFood / distance;
                 }
-                const nearestFood = foods.sort((a, b) => {
-                    const distanceA = Math.sqrt((a.x - this.x) ** 2 + (a.y - this.y) ** 2);
-                    const distanceB = Math.sqrt((b.x - this.x) ** 2 + (b.y - this.y) ** 2);
-                    return distanceA - distanceB;
-                })[0];
-
-                const deltaXFood = nearestFood.x - this.x;
-                const deltaYFood = nearestFood.y - this.y;
-                const normalizedDistanceFood = Math.sqrt(deltaXFood * deltaXFood + deltaYFood * deltaYFood);
-
-                if (normalizedDistanceFood > 0) {
-                    this.xDirection = (deltaXFood / normalizedDistanceFood);
-                    this.yDirection = (deltaYFood / normalizedDistanceFood);
-                } else {
+                else {
                     this.xDirection = 0;
                     this.yDirection = 0;
                 }
