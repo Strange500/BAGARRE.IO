@@ -7,7 +7,7 @@ import {
 	handleKeyup,
 	movePlayer,
 } from './handlers/MovementPlayerHandler.js';
-import { Food } from './Food';
+import { Food } from './class/Food';
 import {Bot} from "./class/Bot";
 import {Circle, Quadtree} from "@timohausmann/quadtree-ts";
 
