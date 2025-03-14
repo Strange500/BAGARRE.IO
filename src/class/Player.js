@@ -1,4 +1,4 @@
-import { Score } from "./Score.js";
+import { Score } from './Score.js';
 export class Player {
 	name;
 	size;
@@ -12,7 +12,7 @@ export class Player {
 		this.name = name;
 		this.size = 20;
 		this.score = new Score();
-		this.x =  x;
+		this.x = x;
 		this.y = y;
 		this.xDirection = 0;
 		this.yDirection = 0;
