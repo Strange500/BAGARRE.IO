@@ -10,6 +10,11 @@ import {
 import { Food } from './class/Food';
 import {Bot} from "./class/Bot";
 import {Circle, Quadtree} from "@timohausmann/quadtree-ts";
+import { io } from 'socket.io-client';
+
+
+
+
 
 const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -157,3 +162,18 @@ setInterval(() => {
 }, 1000);
 
 requestAnimationFrame(render);
+
+
+
+const socket = io(window.location.hostname + ':3000');
+socket.on('connect', (pList) => {
+	pList.forEach(p => {
+		players.push(new Player(p.name, p.x, p.y));
+	});
+});
+
+socket.on('connect_error', (error) => {
+	console.error('Failed to connect to server');
+	console.error(error);
+});
+
