@@ -1,6 +1,5 @@
 import {player} from "../Game";
 
-export let speed = 5;
 
 export function handleKeydown(event) {
 	switch (event.key) {
@@ -41,18 +40,6 @@ export function handleKeyup(event) {
 }
 
 export function movePlayer(player, map) {
-	player.x += speed * player.xDirection;
-	player.y += speed * player.yDirection;
-
-	if (player.x < 0) {
-		player.x = 0;
-	} else if (player.x > map.width - player.size) {
-		player.x = map.width - player.size;
-	}
-
-	if (player.y < 0) {
-		player.y = 0;
-	} else if (player.y > map.height - player.size) {
-		player.y = map.height - player.size;
-	}
+	player.x += player.speed * player.xDirection;
+	player.y += player.speed * player.yDirection;
 }

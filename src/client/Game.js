@@ -1,7 +1,6 @@
 import { Player } from './class/Player.js';
 import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
-import { players } from './handlers/PlayerHandler.js';
 import {
 	handleKeydown,
 	handleKeyup,
@@ -10,7 +9,12 @@ import {
 import { Food } from './class/Food';
 import {Bot} from "./class/Bot";
 import {Circle, Quadtree} from "@timohausmann/quadtree-ts";
+import { io } from 'socket.io-client';
 
+
+
+
+const players = [];
 const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
 const context = canvas.getContext('2d');
@@ -34,7 +38,7 @@ export const viewHeight = canvas.clientHeight;
 
 const map = new GameMap(mapConfig.maxSizeX, mapConfig.maxSizeY);
 
-export const player = new Player('GigaChad',map.width / 2, map.height / 2);
+export let player = new Player('GigaChad',map.width / 2, map.height / 2);
 
 const foodQuadTree = new Quadtree({
 	width: map.width,
@@ -56,11 +60,11 @@ for (let i = 0; i < 1000; i++) {
 const bots = [];
 for (let i = players.length; i < MAX_JOUEURS; i++) {
 	const bot = new Bot(`Bot ${i}`, Math.random() * map.width, Math.random() * map.height);
-	bots.push(bot);
-	players.push(bot);
+	//bots.push(bot);
+	//players.push(bot);
 }
 
-players.push(player);
+//players.push(player);
 
 let nbFrame = 0;
 
@@ -157,3 +161,49 @@ setInterval(() => {
 }, 1000);
 
 requestAnimationFrame(render);
+
+const username = prompt('Enter your username');
+
+const socket = io(window.location.hostname + ':3000');
+socket.on('connect', () => {
+	socket.emit('join', {
+		username: username,
+	});
+
+	socket.on('player', (p) => {
+		player = new Player(p.name, p.x, p.y, p.id);
+		console.log('Received player', player);
+		players.push(player);
+	});
+
+	socket.on("players", (p) => {
+		p.filter(p => p.id !== player.id).forEach(p => {
+			players.push(new Player(p.name, p.x, p.y, p.id));
+		});
+	});
+
+	setInterval(() => {
+		socket.emit('move', {
+			xDirection: player.xDirection,
+			yDirection: player.yDirection,
+		});
+	}, 10);
+
+	socket.on('playerMoved', (p) => {
+		const movedPlayer = players.find((player) => player.id === p.id);
+		if (!movedPlayer) return;
+		movedPlayer.x = p.x;
+		movedPlayer.y = p.y;
+	});
+});
+
+
+socket.on('disconnect', () => {
+	console.log('Disconnected from server');
+});
+
+socket.on('connect_error', (error) => {
+	console.error('Failed to connect to server');
+	console.error(error);
+});
+

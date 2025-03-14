@@ -13,7 +13,7 @@ export class GameMap {
         context.moveTo(player.x, player.y);
         context.font = '20px Arial';
         context.fillStyle = 'black';
-        context.fillText(player.name, player.x, player.y);
+        context.fillText(`${player.name} \nx: ${player.x}\ny: ${player.y}`, player.x, player.y);
     }
 
     drawDecor(context, playerPosition, width, height) {
