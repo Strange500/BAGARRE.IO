@@ -111,7 +111,10 @@ function setupUser(socket) {
 						foodQuadTree.insert(new Food(f.bonus, f.x, f.y));
 					});
 					socket.emit('init:foodReceived');
-					prompt('Press OK when you are ready to start the game');
+					let ready = prompt('type OK when you are ready to start the game');
+					while (ready !== 'OK') {
+						ready = prompt('type OK when you are ready to start the game');
+					}
 					socket.emit('init:go');
 					console.log('Game is ready');
 					socket.on('game:start', () => {

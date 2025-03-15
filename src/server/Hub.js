@@ -122,8 +122,13 @@ export class Hub {
                             player.ready = true;
                         }
 
-                        if (this.players.every(p => p.ready)) {
-                            console.log('All players are ready');
+                        let allReady = true;
+                        this.players.forEach(p => {
+                            if (!p.ready) {
+                                allReady = false;
+                            }
+                        });
+                        if (allReady) {
                             this._sendToRoom('game:start');
                         }
                     });
