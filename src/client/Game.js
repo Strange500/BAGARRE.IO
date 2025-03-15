@@ -13,10 +13,9 @@ const fpsDiv = document.querySelector('#fps');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 const players = [];
-let socket;
 let foodQuadTree;
 let map;
-
+let socket;
 // Player-related variables
 export let player;
 let nbFrame = 0;
@@ -38,7 +37,7 @@ function initializeGame() {
 }
 
 function setupSocket() {
-	const socket = io(`${window.location.hostname}:3000`);
+	socket = io(`${window.location.hostname}:3000`);
 
 	// Set up socket event listeners
 	socket.on('connect', () => {
@@ -119,7 +118,7 @@ function setupUser(socket) {
 					console.log('Game is ready');
 					socket.on('game:start', () => {
 						console.log('Game started');
-						launchClientGame();
+						launchClientGame(socket);
 					});
 				});
 
@@ -137,6 +136,28 @@ function launchClientGame() {
 	}, 1000);
 
 	requestAnimationFrame(render);
+
+	socket.on("food:ate", (data) => {
+		const p = players.find(p => p.id === data.playerId);
+		if (p === player) return;
+		const f = new Food(data.food.bonus, data.food.x, data.food.y);
+		const food = foodQuadTree.retrieve(new Circle({ x: f.x, y: f.y, r: f.size }));
+		if (food.length > 0) {
+			const f = food.find(fo => fo.x === data.food.x && fo.y === data.food.y);
+			if (f) {
+				foodQuadTree.remove(f);
+			}
+		}
+		p.addFood(data.food.bonus);
+	});
+
+	socket.on('player:moved', (content) => {
+		const p = players.find(p => p.id === content.playerId);
+		if (p) {
+			p.x = content.x;
+			p.y = content.y;
+		}
+	});
 }
 
 function render() {
@@ -168,6 +189,12 @@ function handleBonus(p) {
 		if (distance <= p.size) {
 			p.addFood(food.bonus);
 			foodQuadTree.remove(food);
+			socket.emit('player:eat', {
+				playerId: p.id,
+				x: food.x,
+				y: food.y,
+				bonus: food.bonus
+			});
 		}
 	});
 }
@@ -178,9 +205,12 @@ function updateGame() {
 		yDirection: player.yDirection,
 	};
 	movePlayer(player, map);
-	players.forEach(p => {
-		handleBonus(p);
+	socket.emit('player:move', {
+		playerId: player.id,
+		x: player.x,
+		y: player.y,
 	});
+	handleBonus(player);
 	players.sort((a, b) => a.size - b.size);
 }
 

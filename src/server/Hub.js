@@ -57,6 +57,10 @@ export class Hub {
         this.io.to(this.name).emit(event, data);
     }
 
+    _onRoomEvent(event, callback) {
+        this.io.to(this.name).on(event, callback);
+    }
+
     handleDisconnect(socket) {
         console.log('A user disconnected from room', this.name);
         this._sendToRoom('playerDisconnected', socket.id);
@@ -72,6 +76,15 @@ export class Hub {
           this.bots.length
         );
         this.bots.push(bot);
+    }
+
+    _fillWithBots() {
+        while (this.players.length + this.bots.length < MAX_PLAYERS) {
+            this._spawnBot();
+        }
+        this.bots.forEach(bot => {
+            this._addBot(bot);
+        });
     }
 
     async handleIoConnection(socket) {
@@ -97,8 +110,15 @@ export class Hub {
             socket.emit('room:players', this.players);
 
             this.setupPlayerInitListeners(socket);
-        } else {
-            socket.emit('room:full');
+        } else if (this.bots.length > 0) {
+
+        }
+    }
+
+    _addBot(bot) {
+        if (this.players.length < MAX_PLAYERS) {
+            this.players.push(bot);
+            this._sendToRoom('room:newPlayer', bot);
         }
     }
 
@@ -128,14 +148,71 @@ export class Hub {
                                 allReady = false;
                             }
                         });
+                        this._setListeners(socket);
                         if (allReady) {
-                            this._sendToRoom('game:start');
+                            this._start();
                         }
                     });
                 });
             });
         });
     }
+
+    _getNearestObject({ x, y }, objects) {
+        let nearest = null;
+        let nearestDistance = Infinity;
+        objects.forEach(obj => {
+            const distance = Math.hypot(obj.x - x, obj.y - y);
+            if (distance < nearestDistance) {
+                nearest = obj;
+                nearestDistance = distance;
+            }
+        });
+        return {
+            nearest: nearest,
+            distance: nearestDistance
+        }
+    }
+
+    async _setListeners(socket) {
+        socket.on('player:eat', (content) => {
+            const food = new Food(content.bonus, content.x, content.y);
+            const player = this.players.find(p => p.id === content.playerId);
+            if (player) {
+                const serverFood = this.food.retrieve(new Circle({
+                    x: player.x,
+                    y: player.y,
+                    r: player.size
+                }));
+                const nearest = serverFood.find(f => f.x === food.x && f.y === food.y);
+                const distance = Math.hypot(nearest.x - player.x, nearest.y - player.y);
+                if (nearest && distance < player.size) {
+                    console.log(`Player ${player.name} ate food`);
+                    this.food.remove(nearest);
+                    player.addFood(nearest.bonus);
+                    this._sendToRoom('food:ate', {
+                        food: nearest,
+                        playerId: player.id
+                    });
+                }
+            }
+        });
+
+        socket.on('player:move', (content) => {
+            const player = this.players.find(p => p.id === content.playerId);
+            if (player) {
+                player.x = content.x;
+                player.y = content.y;
+            }
+            this._sendToRoom('player:moved', content);
+        });
+    }
+
+    _start() {
+        this._fillWithBots();
+        this._sendToRoom('game:start');
+    }
+
 
     // Stop the Hub and clean up resources
     stop() {
