@@ -5,7 +5,7 @@ import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
 
 const MAX_PLAYERS = 3;
-const MAX_FOOD = 1000;
+const MAX_FOOD = 100;
 const MAX_FOOD_BONUS = 15;
 
 
@@ -238,8 +238,55 @@ export class Hub {
 
     startGameLoop() {
         return setInterval(() => {
+            this.bots.forEach(bot => {
+                bot.nextMove(this.food, this.players);
+                bot.x += bot.speed * bot.xDirection;
+                bot.y += bot.speed * bot.yDirection;
+                if (bot.x > this.map.width) bot.x = this.map.width;
+                if (bot.x < 0) bot.x = 0;
+                if (bot.y > this.map.height) bot.y = this.map.height;
+                if (bot.y < 0) bot.y = 0;
+                this._sendToRoom('player:moved', {
+                    x: bot.x,
+                    y: bot.y,
+                    playerId: bot.id
+                });
+            });
 
-        });
+            this.bots.forEach(bot => {
+                const food = this.food.retrieve(new Circle({
+                    x: bot.x,
+                    y: bot.y,
+                    r: bot.size
+                }));
+                const nearest = this._getNearestObject(bot, food);
+                if (nearest.nearest && nearest.distance < bot.size) {
+                    console.log(`Bot ${bot.name} ate food`);
+                    this.food.remove(nearest.nearest);
+                    bot.addFood(nearest.nearest.bonus);
+                    this._sendToRoom('food:ate', {
+                        food: nearest.nearest,
+                        playerId: bot.id
+                    });
+                }
+            });
+
+            this.bots.forEach(bot => {
+                this.players.forEach(player => {
+                    if (player.id === bot.id) return;
+                    const distance = Math.hypot(player.x - bot.x, player.y - bot.y);
+                    if (distance < player.size) {
+                        console.log(`Bot ${bot.name} killed ${player.name}`);
+                        bot.addKill(player.size);
+                        this.players.splice(this.players.indexOf(player), 1);
+                        this._sendToRoom('player:killed', {
+                            playerId: bot.id,
+                            targetId: player.id
+                        });
+                    }
+                });
+            });
+        }, 1000 / 60);
     }
 
     async _start() {
@@ -250,7 +297,7 @@ export class Hub {
        while (!this.isGameEnded()) {
           await sleep(1000);
        }
-
+        console.log('Game ended');
         clearInterval(loop);
         this._sendToRoom('game:end');
 
@@ -267,7 +314,7 @@ export class Hub {
      * or if there are only bots left
      */
     isGameEnded() {
-        return this.players.length === 1;
+        return this.players.length === 1 || this.players.length === this.bots.length;
     }
 
 

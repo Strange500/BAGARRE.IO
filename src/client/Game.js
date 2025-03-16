@@ -130,6 +130,7 @@ function launchClientGame() {
 
 	socket.on("food:ate", (data) => {
 		const p = players.find(p => p.id === data.playerId);
+		if (!p) return;
 		const f = new Food(data.food.bonus, data.food.x, data.food.y);
 		const food = foodQuadTree.retrieve(new Circle({ x: f.x, y: f.y, r: f.size }));
 		if (food.length > 0) {
