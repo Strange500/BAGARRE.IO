@@ -30,8 +30,8 @@ export class Player {
 	}
 
 	addFood(amount) {
-		this.score.addFoodScore(amount);
-		this.increaseSize(amount * 0.1);
+		this.score.addFoodScore(amount / 10);
+		this.increaseSize(amount / 10);
 	}
 
 	addBonus(amount) {

@@ -139,7 +139,6 @@ function launchClientGame() {
 
 	socket.on("food:ate", (data) => {
 		const p = players.find(p => p.id === data.playerId);
-		if (p === player) return;
 		const f = new Food(data.food.bonus, data.food.x, data.food.y);
 		const food = foodQuadTree.retrieve(new Circle({ x: f.x, y: f.y, r: f.size }));
 		if (food.length > 0) {
@@ -148,7 +147,10 @@ function launchClientGame() {
 				foodQuadTree.remove(f);
 			}
 		}
+		console.log(`Player ${p.name} ate food with bonus ${data.food.bonus}, current size: ${p.size}`);
 		p.addFood(data.food.bonus);
+		console.log(`new size: ${p.size}`);
+
 	});
 
 	socket.on('player:moved', (content) => {
@@ -187,8 +189,8 @@ function handleBonus(p) {
 	foodQuadTree.retrieve(new Circle({ x: p.x, y: p.y, r: p.size })).forEach(food => {
 		const distance = Math.hypot(food.x - p.x, food.y - p.y);
 		if (distance <= p.size) {
-			p.addFood(food.bonus);
-			foodQuadTree.remove(food);
+			//p.addFood(food.bonus);
+			//foodQuadTree.remove(food);
 			socket.emit('player:eat', {
 				playerId: p.id,
 				x: food.x,

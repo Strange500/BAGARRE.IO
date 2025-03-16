@@ -10,10 +10,10 @@ export class Food extends Circle{
 		super({
 			x: x,
 			y: y,
-			r: bonus*10
+			r: bonus
 		});
-		this.bonus = bonus* 10;
-		this.size = bonus*10;
+		this.bonus = bonus;
+		this.size = bonus;
 		this.x = x;
 		this.y = y;
 	}

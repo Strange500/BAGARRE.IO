@@ -6,7 +6,7 @@ import { Food } from '../client/class/Food.js';
 
 const MAX_PLAYERS = 10;
 const MAX_FOOD = 1000;
-const MAX_FOOD_BONUS = 0.1;
+const MAX_FOOD_BONUS = 15;
 
 export class Hub {
     players;
