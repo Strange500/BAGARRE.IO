@@ -4,9 +4,14 @@ import { Player } from '../client/class/Player.js';
 import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
 
-const MAX_PLAYERS = 10;
+const MAX_PLAYERS = 3;
 const MAX_FOOD = 1000;
 const MAX_FOOD_BONUS = 15;
+
+
+async function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 export class Hub {
     players;
@@ -15,6 +20,7 @@ export class Hub {
     map;
     io;
     name;
+    status;
 
     constructor({ maxSizeX, maxSizeY }, ioServer, roomName) {
         this.map = new GameMap(maxSizeX, maxSizeY);
@@ -26,6 +32,7 @@ export class Hub {
         });
         this.io = ioServer; // Socket.io server instance
         this.name = roomName; // Room identifier
+        this.status = 'waiting'; // 'waiting', 'started', 'ended'
         this.initializeFood();
     }
 
@@ -90,7 +97,10 @@ export class Hub {
     async handleIoConnection(socket) {
         console.log('A user is connected to room', this.name);
         socket.emit('room:joined');
-
+        if (this.status === 'ended') {
+            socket.emit('game:end');
+            return;
+        }
         socket.on('init:ready', (playerName) => {
             this.addPlayer(socket, playerName);
         });
@@ -122,7 +132,6 @@ export class Hub {
         }
     }
 
-    // Set up initialization listeners for the new player
     setupPlayerInitListeners(socket) {
         socket.on('init:receivedPlayers', () => {
             console.log('Player received players');
@@ -141,7 +150,6 @@ export class Hub {
                         if (player) {
                             player.ready = true;
                         }
-
                         let allReady = true;
                         this.players.forEach(p => {
                             if (!p.ready) {
@@ -185,6 +193,7 @@ export class Hub {
                     r: player.size
                 }));
                 const nearest = serverFood.find(f => f.x === food.x && f.y === food.y);
+                if (!nearest) return;
                 const distance = Math.hypot(nearest.x - player.x, nearest.y - player.y);
                 if (nearest && distance < player.size) {
                     console.log(`Player ${player.name} ate food`);
@@ -206,11 +215,59 @@ export class Hub {
             }
             this._sendToRoom('player:moved', content);
         });
+
+        socket.on('player:kill', (content) => {
+            const player = this.players.find(p => p.id === content.playerId);
+            if (player) {
+                const target = this.players.find(p => p.id === content.targetId);
+                if (target) {
+                    console.log(`Player ${player.name} might have killed ${target.name}`);
+                    const distance = Math.hypot(target.x - player.x, target.y - player.y);
+                    if (distance > player.size) return;
+                    console.log(`Player ${player.name} killed ${target.name}`);
+                    player.addKill(target.size);
+                    this.players.splice(this.players.indexOf(target), 1);
+                    this._sendToRoom('player:killed', {
+                        playerId: player.id,
+                        targetId: target.id
+                    });
+                }
+            }
+        });
     }
 
-    _start() {
+    startGameLoop() {
+        return setInterval(() => {
+
+        });
+    }
+
+    async _start() {
         this._fillWithBots();
+        const loop = this.startGameLoop();
         this._sendToRoom('game:start');
+
+       while (!this.isGameEnded()) {
+          await sleep(1000);
+       }
+
+        clearInterval(loop);
+        this._sendToRoom('game:end');
+
+    }
+
+    isOnlyBotLeft() {
+        return this.players.length === this.bots.length;
+    }
+
+    /**
+     * Check if the game has ended
+     * if there are no players left
+     * or if there is only one player left
+     * or if there are only bots left
+     */
+    isGameEnded() {
+        return this.players.length === 1;
     }
 
 

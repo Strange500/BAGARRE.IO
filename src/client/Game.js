@@ -7,26 +7,22 @@ import { Circle, Quadtree } from "@timohausmann/quadtree-ts";
 import { io } from 'socket.io-client';
 
 
-// DOM Elements
 const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
+
 const players = [];
 let foodQuadTree;
 let map;
 let socket;
-// Player-related variables
 export let player;
 let nbFrame = 0;
 
-// Initialize the game map and player
 initializeGame();
 
-// Resize the canvas based on the window size
 canvasResizeObserver.observe(canvas);
 
-// Function Definitions
 function resampleCanvas() {
 	canvas.width = canvas.clientWidth;
 	canvas.height = canvas.clientHeight;
@@ -38,8 +34,6 @@ function initializeGame() {
 
 function setupSocket() {
 	socket = io(`${window.location.hostname}:3000`);
-
-	// Set up socket event listeners
 	socket.on('connect', () => {
 		console.log('Connected to server');
 		requestRoomChoices(socket);
@@ -54,14 +48,12 @@ function setupSocket() {
 	});
 }
 
-// Request available rooms and allow user to join one
 function requestRoomChoices(socket) {
 	socket.on('room:choices', (rooms) => {
 		console.log('Available rooms:', rooms);
 		const room = prompt('Enter room name: ' + rooms.join(', '));
 		socket.emit('room:join', room);
 
-		// Listen for acknowledgment of successfully joining the room
 		socket.on('room:joined', () => {
 			console.log('Joined room:', room);
 			setupUser(socket);
@@ -69,7 +61,6 @@ function requestRoomChoices(socket) {
 	});
 }
 
-// Set up the user and prompt for username
 function setupUser(socket) {
 	const usrname = prompt('Enter your username: ');
 	socket.emit('init:ready', usrname || 'Anonymous');
@@ -126,11 +117,11 @@ function setupUser(socket) {
 		}
 	});
 }
-
+let stop = false;
 
 function launchClientGame() {
-	setInterval(updateGame, 1000 / 60);
-	setInterval(() => {
+	const updInter = setInterval(updateGame, 1000 / 60);
+	const scInter = setInterval(() => {
 		simulateScores(players);
 		updateScoreboard(players);
 	}, 1000);
@@ -160,9 +151,39 @@ function launchClientGame() {
 			p.y = content.y;
 		}
 	});
+
+	socket.on('player:killed', (content) => {
+		const p = players.find(p => p.id === content.playerId);
+		const target = players.find(p => p.id === content.targetId);
+		if (p && target) {
+			p.addKill(target.size);
+			players.splice(players.indexOf(target), 1);
+			console.log(`Player ${p.name} killed ${target.name}`);
+			if (target === player) {
+				console.log('You were killed');
+				clearInterval(updInter);
+				clearInterval(scInter);
+				stop = true;
+			}
+		}
+	});
+
+	socket.on('game:end', () => {
+		console.log('Game ended');
+		clearInterval(updInter);
+		clearInterval(scInter);
+		stop = true;
+	});
 }
 
 function render() {
+	if (stop) {
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.font = '48px serif';
+		context.fillStyle = 'black';
+		context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+		return;
+	}
 	context.clearRect(0, 0, canvas.width, canvas.height);
 	const offsetX = -player.x + canvas.width / 2;
 	const offsetY = -player.y + canvas.height / 2;
@@ -189,8 +210,6 @@ function handleBonus(p) {
 	foodQuadTree.retrieve(new Circle({ x: p.x, y: p.y, r: p.size })).forEach(food => {
 		const distance = Math.hypot(food.x - p.x, food.y - p.y);
 		if (distance <= p.size) {
-			//p.addFood(food.bonus);
-			//foodQuadTree.remove(food);
 			socket.emit('player:eat', {
 				playerId: p.id,
 				x: food.x,
@@ -201,11 +220,28 @@ function handleBonus(p) {
 	});
 }
 
+function handleKill(p, players) {
+	for (let i = 0; i < players.length; i++) {
+		const other = players[i];
+		if (other === p) continue;
+
+		const deltaXPlayer = other.x - p.x;
+		const deltaYPlayer = other.y - p.y;
+		const distanceToPlayer = Math.hypot(deltaXPlayer, deltaYPlayer);
+
+		if (p.size > other.size && distanceToPlayer < p.size) {
+			p.addKill(other.size);
+			socket.emit('player:kill', {
+				playerId: p.id,
+				targetId: other.id
+			});
+		}
+	}
+}
+
+
+
 function updateGame() {
-	const movementData = {
-		xDirection: player.xDirection,
-		yDirection: player.yDirection,
-	};
 	movePlayer(player, map);
 	socket.emit('player:move', {
 		playerId: player.id,
@@ -213,9 +249,9 @@ function updateGame() {
 		y: player.y,
 	});
 	handleBonus(player);
+	handleKill(player, players);
 	players.sort((a, b) => a.size - b.size);
 }
 
 document.addEventListener('keydown', handleKeydown);
 document.addEventListener('keyup', handleKeyup);
-canvas.addEventListener('mousedown', (event) => context.beginPath());
