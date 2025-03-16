@@ -12,6 +12,7 @@
 4. [ScoreBoard](#board)
     1. [Points](#points)
 5. [Fin de Partie](#end)
+6. [Installation](#installation)
 
 ## Introduction <a name="introduction"></a>
 Le jeu est un jeu multijoueur en ligne où les joueurs contrôlent un avatar qui se déplace sur un plateau vu de dessus. Le but est de grossir en collectant des bonus tout en évitant de se faire absorber par d'autres joueurs plus grands.
@@ -44,3 +45,16 @@ Le tableau des scores affiche le classement des joueurs en fonction de leur tail
 
 ## Fin de Partie <a name="end"></a>
 La partie se termine lorsque tous les autres joueurs sont éliminés ou lorsqu'un objectif spécifique est atteint.
+
+
+## Installation <a name="installation"></a>
+1. Cloner le dépôt
+2. Installer les dépendances
+```bash
+npm i
+```
+3. Lancer le serveur
+```bash
+npm run deploy
+```
+4. Ouvrir un navigateur et se connecter à l'adresse `http://localhost:8000`
