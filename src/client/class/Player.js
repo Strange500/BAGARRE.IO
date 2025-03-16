@@ -1,5 +1,6 @@
 import { Score } from './Score.js';
 export class Player {
+	id;
 	name;
 	size;
 	score;
@@ -7,8 +8,10 @@ export class Player {
 	y;
 	xDirection;
 	yDirection;
+	speed;
+	ready;
 
-	constructor(name, x, y) {
+	constructor(name, x, y, id) {
 		this.name = name;
 		this.size = 20;
 		this.score = new Score();
@@ -16,6 +19,9 @@ export class Player {
 		this.y = y;
 		this.xDirection = 0;
 		this.yDirection = 0;
+		this.id = id;
+		this.speed = 5;
+		this.ready = false;
 	}
 
 	increaseSize(amount) {
@@ -24,8 +30,8 @@ export class Player {
 	}
 
 	addFood(amount) {
-		this.score.addFoodScore(amount);
-		this.increaseSize(amount * 0.1);
+		this.score.addFoodScore(amount / 10);
+		this.increaseSize(amount / 10);
 	}
 
 	addBonus(amount) {
