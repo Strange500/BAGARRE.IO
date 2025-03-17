@@ -5,7 +5,7 @@ import { handleKeydown, handleKeyup, movePlayer } from './handlers/MovementPlaye
 import { Food } from './class/Food';
 import { Circle, Quadtree } from "@timohausmann/quadtree-ts";
 import { io } from 'socket.io-client';
-
+import { updatePlayerSheet } from './class/Player.js';
 
 const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -240,8 +240,6 @@ function handleKill(p, players) {
 	}
 }
 
-
-
 function updateGame() {
 	movePlayer(player, map);
 	socket.emit('player:move', {
@@ -256,3 +254,8 @@ function updateGame() {
 
 document.addEventListener('keydown', handleKeydown);
 document.addEventListener('keyup', handleKeyup);
+setInterval(() => {
+    if (player) {
+        updatePlayerSheet(player);
+    }
+}, 1000);

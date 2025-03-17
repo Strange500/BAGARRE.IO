@@ -21,8 +21,4 @@ export class pHandler {
 			this.handleEat(content);
 		});
 	}
-
-
-
-
 }

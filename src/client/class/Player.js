@@ -52,3 +52,34 @@ export class Player {
 		this.score.reset();
 	}
 }
+
+export function updatePlayerSheet(player) {
+    const playerSheetBody = document.getElementById("playersheet-body");
+    if (!playerSheetBody) return;
+
+    playerSheetBody.innerHTML = "";
+
+    const row = document.createElement("tr");
+
+    const nameRow = document.createElement("tr");
+    const nameCell = document.createElement("td");
+    nameCell.textContent = `Name: ${player.name}`;
+    nameCell.colSpan = 2;
+    nameRow.appendChild(nameCell);
+
+    const sizeRow = document.createElement("tr");
+    const sizeCell = document.createElement("td");
+    sizeCell.textContent = `Size: ${player.size.toFixed(2)}`;
+    sizeCell.colSpan = 2;
+    sizeRow.appendChild(sizeCell);
+
+    const scoreRow = document.createElement("tr");
+    const scoreCell = document.createElement("td");
+    scoreCell.textContent = `Score: ${player.score.getTotalScore()}`;
+    scoreCell.colSpan = 2;
+    scoreRow.appendChild(scoreCell);
+
+    playerSheetBody.appendChild(nameRow);
+    playerSheetBody.appendChild(sizeRow);
+    playerSheetBody.appendChild(scoreRow);
+}

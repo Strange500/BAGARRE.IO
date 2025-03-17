@@ -83,10 +83,11 @@ h1 em {
     background: rgba(0, 0, 0, 0.6);
     color: white;
     border-radius: 8px;
-    padding: 10px;
+    padding: 15px;
     font-size: 14px;
-    text-align: center;
+    text-align: left;
     font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
+    width: 200px;
 }
 
 .playersheet table {
@@ -94,9 +95,10 @@ h1 em {
     border-collapse: collapse;
 }
 
-.playersheet th {
-    font-weight: bold;
-    text-transform: uppercase;
+.playersheet td {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    text-align: left;
 }
 
 .playersheet tr:last-child td {
