@@ -75,7 +75,7 @@ export function updatePlayerSheet(player) {
 
     const scoreRow = document.createElement("tr");
     const scoreCell = document.createElement("td");
-    scoreCell.textContent = `Score: ${player.score.getTotalScore()}`;
+	scoreCell.textContent = `Score: ${player.score.getTotalScore().toFixed(2)}`;
     scoreCell.colSpan = 2;
     scoreRow.appendChild(scoreCell);
 

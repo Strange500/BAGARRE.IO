@@ -8,7 +8,7 @@ export function updateScoreboard(players) {
 
 	sortedPlayers.forEach(player => {
 		const row = document.createElement('tr');
-		row.innerHTML = `<td>${player.name}</td><td>${player.score.getTotalScore()}</td>`;
+		row.innerHTML = `<td>${player.name}</td><td>${player.score.getTotalScore().toFixed(2)}</td>`;
 		scoreboardBody.appendChild(row);
 	});
 }
