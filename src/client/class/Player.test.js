@@ -40,12 +40,15 @@ describe('Player', () => {
 		assert.strictEqual(player.size, 22);
 	});
 
-	// it('should apply decay to score', () => {
-	//     const player = new Player('Frank', 0, 0, 6);
-	//     player.score.totalScore = 100;
-	//     player.applyDecay(0.1);
-	//     assert.strictEqual(player.score.totalScore, 90);
-	// });          TO BE FIXED
+	it('should apply decay to score', () => {
+		const player = new Player('Frank', 0, 0, 6);
+		player.score.updateCoef(1);
+		player.score.addFoodScore(10);
+		player.score.addBonusScore(5);
+		player.score.addKillScore(2);
+		player.applyDecay(1);
+		assert.strictEqual(player.score.getTotalScore(), 14);
+	});
 
 	it('should reset the player', () => {
 		const player = new Player('Grace', 0, 0, 7);
