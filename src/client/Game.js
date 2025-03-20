@@ -241,6 +241,8 @@ function launchClientGame() {
 
 const times = [];
 let fps = 0;
+let zoomViaScroll = false;
+
 
 function computeFps() {
 	const now = performance.now();
@@ -250,10 +252,12 @@ function computeFps() {
 	times.push(now);
 }
 
+let zoomLevel = 1; // Initial zoom level
+const zoomStep = 0.1; // How much to zoom in/out each time
+
 function render() {
 	computeFps();
 	fps = times.length;
-
 
 	if (stop) {
 		context.clearRect(0, 0, canvas.width, canvas.height);
@@ -262,33 +266,60 @@ function render() {
 		context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
 		return;
 	}
+	if (!zoomViaScroll) {
+		if (player.size < 50) {
+			zoomLevel = 1;
+		} else if (player.size < 100) {
+			zoomLevel = 0.9;
+		} else if (player.size < 200) {
+			zoomLevel = 0.8;
+		} else if (player.size < 400) {
+			zoomLevel = 0.7;
+		} else if (player.size < 800) {
+			zoomLevel = 0.6;
+		}
+	}
+
 	context.clearRect(0, 0, canvas.width, canvas.height);
-	const offsetX = -player.x + canvas.width / 2;
-	const offsetY = -player.y + canvas.height / 2;
+
+	context.scale(zoomLevel, zoomLevel);
+
+	const offsetX = (-(player.x) + (canvas.width / (2 * zoomLevel)));
+	const offsetY = (-(player.y) + (canvas.height / (2 * zoomLevel)));
 
 	context.translate(offsetX, offsetY);
 
-	map.drawDecor(context, player, canvas.width / 2, canvas.height / 2);
-	map.drawFood(
-		context,
-		foodQuadTree,
-		player,
-		canvas.width / 2,
-		canvas.height / 2
-	);
+	map.drawDecor(context, player, canvas.width / (2 * zoomLevel) + player.size, canvas.height / (2 * zoomLevel) + player.size);
+	map.drawFood(context, foodQuadTree, player, canvas.width / (2 * zoomLevel), canvas.height / (2 * zoomLevel));
 
 	players.forEach(p => {
-		if (
-			map.drawPlayer(context, p, player, canvas.width / 2, canvas.height / 2)
-		) {
+		if (map.drawPlayer(context, p, player, canvas.width / (2 * zoomLevel), canvas.height / (2 * zoomLevel))) {
 			map.drawName(context, p);
 		}
 	});
 
 	context.resetTransform();
-
 	requestAnimationFrame(render);
 }
+
+function zoomIn() {
+	zoomLevel += zoomStep;
+	if (zoomLevel > 2) zoomLevel = 2;
+}
+
+function zoomOut() {
+	zoomLevel -= zoomStep;
+	if (zoomLevel < 0.5) zoomLevel = 0.5; // Limit minimum zoom
+}
+
+document.addEventListener('wheel', (event) => {
+	zoomViaScroll = true;
+	if (event.deltaY > 0) {
+		zoomOut(); // Zoom out on scroll down
+	} else {
+		zoomIn(); // Zoom in on scroll up
+	}
+});
 
 function handleBonus(p) {
 	foodQuadTree
