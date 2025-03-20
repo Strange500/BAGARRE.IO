@@ -2,6 +2,7 @@ import { Player } from './class/Player.js';
 import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
 import {
+	computeTargetAngle,
 	handleKeyDown, handleKeyUp,
 	handleMouseDirection,
 } from './handlers/MovementPlayerHandler.js';
@@ -341,6 +342,7 @@ function handleKill(p, players) {
 }
 
 function updateGame() {
+	computeTargetAngle();
 	movePlayer(player, map);
 	socket.emit('player:move', {
 		playerId: player.id,

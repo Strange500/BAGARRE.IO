@@ -1,4 +1,9 @@
-import { canvas, player } from "../Game.js";
+import { canvas, player } from '../Game.js';
+import { MAX_SPEED, SPEED_LEVEL } from '../../server/movement';
+
+const maxDistanceToReachMaxSpeed = 100;
+let isKeyboardControl = false;
+const lastMousePosition = { x: 0, y: 0 };
 
 const angles = {
 	"up": -Math.PI / 2,
@@ -21,22 +26,27 @@ const keyBindings = {
 const keyStack = new Set(); // Use a Set for unique keys
 
 export function handleKeyDown(event) {
-	console.log(event.key);
 	keyStack.add(event.key);
-	computeTargetAngle();
+	isKeyboardControl = true;
 }
 
 export function handleKeyUp(event) {
-	console.log(event.key);
 	keyStack.delete(event.key);
-	computeTargetAngle();
 }
 
-function computeTargetAngle() {
+export function computeTargetAngle() {
+
+	if (!isKeyboardControl) {
+		player.targetDeg = Math.atan2(lastMousePosition.y - canvas.height / 2, lastMousePosition.x - canvas.width / 2);
+		const targetSpeed = (Math.hypot(lastMousePosition.y - canvas.height / 2, lastMousePosition.x - canvas.width / 2) / maxDistanceToReachMaxSpeed) * MAX_SPEED;
+		player.speed = Math.min(MAX_SPEED, player.speed + (targetSpeed - player.speed) * SPEED_LEVEL);
+		return;
+	}
 	const keys = Array.from(keyStack);
 
 	if (keys.length === 0) {
 		player.targetDeg = player.deg; // Defaults to current angle
+		player.speed = Math.max(0, player.speed - SPEED_LEVEL);
 		return;
 	}
 
@@ -60,11 +70,12 @@ function computeTargetAngle() {
 			secondLastKey === 'down' ? angles.downRight :
 				angles.right;
 	}
+
+	player.speed = Math.min(MAX_SPEED, player.speed + SPEED_LEVEL);
 }
 
 export function handleMouseDirection(event) {
-	const rect = canvas.getBoundingClientRect();
-	const canvasMiddleX = rect.width / 2;
-	const canvasMiddleY = rect.height / 2;
-	player.targetDeg = Math.atan2(event.clientY - canvasMiddleY, event.clientX - canvasMiddleX);
+	isKeyboardControl = false;
+	lastMousePosition.x = event.clientX;
+	lastMousePosition.y = event.clientY;
 }

@@ -22,7 +22,7 @@ export class Player {
 		this.xDirection = 0;
 		this.yDirection = 0;
 		this.id = id;
-		this.speed = 5;
+		this.speed = 0;
 		this.ready = false;
 		this.keyPressed = [];
 		this.deg = Math.random() * 2 * Math.PI;

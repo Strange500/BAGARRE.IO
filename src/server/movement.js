@@ -1,5 +1,6 @@
 const INERTIA = 0.07;
-const MAX_SPEED = 5;
+export const MAX_SPEED = 5;
+export const SPEED_LEVEL = 0.1;
 
 export function movePlayer(player, map) {
 	const angleDiff = player.targetDeg - player.deg;
@@ -15,8 +16,8 @@ export function movePlayer(player, map) {
 
 	player.deg = (player.deg + 2 * Math.PI) % (2 * Math.PI);
 
-	player.velocityX = Math.cos(player.deg) * MAX_SPEED;
-	player.velocityY = Math.sin(player.deg) * MAX_SPEED;
+	player.velocityX = Math.cos(player.deg) * player.speed;
+	player.velocityY = Math.sin(player.deg) * player.speed;
 
 	const newX = player.x + player.velocityX;
 	const newY = player.y + player.velocityY;

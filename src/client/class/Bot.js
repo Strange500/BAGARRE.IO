@@ -1,5 +1,6 @@
 import {Player} from "./Player.js";
 import {Rectangle} from "@timohausmann/quadtree-ts";
+import { MAX_SPEED, SPEED_LEVEL } from '../../server/movement.js';
 
 
 const viewLength = 500;
@@ -12,6 +13,7 @@ export class Bot extends Player{
     }
 
     nextMove(foodQuadTree, players) {
+            this.speed = Math.min(MAX_SPEED, this.speed + SPEED_LEVEL);
             let deltaXNearestPlayer = 0;
             let deltaYNearestPlayer = 0;
             let distanceToNearestPlayer = Infinity;
