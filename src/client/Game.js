@@ -2,6 +2,7 @@ import { Player } from './class/Player.js';
 import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
 import {
+	handleKeyDown, handleKeyUp,
 	handleMouseDirection,
 } from './handlers/MovementPlayerHandler.js';
 import { Food } from './class/Food.js';
@@ -352,9 +353,14 @@ function updateGame() {
 }
 
 document.addEventListener('mousemove', handleMouseDirection);
+document.addEventListener('keydown', handleKeyDown);
+document.addEventListener('keyup', handleKeyUp	);
+
 setInterval(() => {
 	if (player) {
 		updatePlayerSheet(player);
 	}
 	soundManager.forceThemeStart();
 }, 1000);
+
+
