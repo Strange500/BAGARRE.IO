@@ -1,87 +1,70 @@
 import { canvas, player } from "../Game.js";
 
-const toTopAngle = -Math.PI / 2;
-const toRightAngle = 0;
-const toBottomAngle =  Math.PI / 2;
-const toLeftAngle = Math.PI;
-const toTopRightAngle = -Math.PI / 4;
-const toBottomRightAngle =  Math.PI / 4;
-const toBottomLeftAngle =3 * Math.PI / 4;
-const toTopLeftAngle =   -3 * Math.PI / 4;
+const angles = {
+	"up": -Math.PI / 2,
+	"down": Math.PI / 2,
+	"left": Math.PI,
+	"right": 0,
+	"upLeft": -3 * Math.PI / 4,
+	"upRight": -Math.PI / 4,
+	"downLeft": 3 * Math.PI / 4,
+	"downRight": Math.PI / 4
+};
 
+const keyBindings = {
+	'z': 'up', 'ArrowUp': 'up',
+	's': 'down', 'ArrowDown': 'down',
+	'q': 'left', 'ArrowLeft': 'left',
+	'd': 'right', 'ArrowRight': 'right'
+};
 
-// use stack to store the key pressed
-const keyStack = [];
+const keyStack = new Set(); // Use a Set for unique keys
+
 export function handleKeyDown(event) {
 	console.log(event.key);
-	if (keyStack.indexOf(event.key) === -1) {
-		keyStack.push(event.key);
-	}
+	keyStack.add(event.key);
 	computeTargetAngle();
 }
 
 export function handleKeyUp(event) {
-	const index = keyStack.indexOf(event.key);
 	console.log(event.key);
-	if (index !== -1) {
-		keyStack.splice(index, 1);
-	}
+	keyStack.delete(event.key);
 	computeTargetAngle();
 }
 
-// consider only the last 2 keys pressed
 function computeTargetAngle() {
-	if (keyStack.length === 0) {
-		player.targetDeg = player.deg;
+	const keys = Array.from(keyStack);
+
+	if (keys.length === 0) {
+		player.targetDeg = player.deg; // Defaults to current angle
 		return;
 	}
 
-	const lastKey = keyStack[keyStack.length - 1];
-	const secondLastKey = keyStack.length > 1 ? keyStack[keyStack.length - 2] : null;
+	const lastKey = keyBindings[keys[keys.length - 1]];
+	const secondLastKey = keys.length > 1 ? keyBindings[keys[keys.length - 2]] : null;
 
-	if (lastKey === 'z' || lastKey === 'ArrowUp') {
-		if (secondLastKey === 'q' || secondLastKey === 'ArrowLeft') {
-			player.targetDeg = toTopLeftAngle;
-		} else if (secondLastKey === 'd' || secondLastKey === 'ArrowRight') {
-			player.targetDeg = toTopRightAngle;
-		} else {
-			player.targetDeg = toTopAngle;
-		}
-	} else if (lastKey === 's' || lastKey === 'ArrowDown') {
-		if (secondLastKey === 'a' || secondLastKey === 'ArrowLeft') {
-			player.targetDeg = toBottomLeftAngle;
-		} else if (secondLastKey === 'd' || secondLastKey === 'ArrowRight') {
-			player.targetDeg = toBottomRightAngle;
-		} else {
-			player.targetDeg = toBottomAngle;
-		}
-	} else if (lastKey === 'q' || lastKey === 'ArrowLeft') {
-		if (secondLastKey === 'z' || secondLastKey === 'ArrowUp') {
-			player.targetDeg = toTopLeftAngle;
-		} else if (secondLastKey === 's' || secondLastKey === 'ArrowDown') {
-			player.targetDeg = toBottomLeftAngle;
-		} else {
-			player.targetDeg = toLeftAngle;
-		}
-	} else if (lastKey === 'd' || lastKey === 'ArrowRight') {
-		if (secondLastKey === 'z' || secondLastKey === 'ArrowUp') {
-			player.targetDeg = toTopRightAngle;
-		} else if (secondLastKey === 's' || secondLastKey === 'ArrowDown') {
-			player.targetDeg = toBottomRightAngle;
-		} else {
-			player.targetDeg = toRightAngle;
-		}
+	if (lastKey === 'up') {
+		player.targetDeg = secondLastKey === 'left' ? angles.upLeft :
+			secondLastKey === 'right' ? angles.upRight :
+				angles.up;
+	} else if (lastKey === 'down') {
+		player.targetDeg = secondLastKey === 'left' ? angles.downLeft :
+			secondLastKey === 'right' ? angles.downRight :
+				angles.down;
+	} else if (lastKey === 'left') {
+		player.targetDeg = secondLastKey === 'up' ? angles.upLeft :
+			secondLastKey === 'down' ? angles.downLeft :
+				angles.left;
+	} else if (lastKey === 'right') {
+		player.targetDeg = secondLastKey === 'up' ? angles.upRight :
+			secondLastKey === 'down' ? angles.downRight :
+				angles.right;
 	}
 }
-
-
-
 
 export function handleMouseDirection(event) {
 	const rect = canvas.getBoundingClientRect();
 	const canvasMiddleX = rect.width / 2;
 	const canvasMiddleY = rect.height / 2;
-
 	player.targetDeg = Math.atan2(event.clientY - canvasMiddleY, event.clientX - canvasMiddleX);
 }
-
