@@ -33,6 +33,10 @@ export let socket;
 export let player;
 let nbFrame = 0;
 
+const ZOOM_LEVEL_THRESHOLDS = [50, 100, 200, 400, 800];
+const FONT_SIZE = '48px';
+const FONT_FAMILY = 'serif';
+
 initializeGame();
 
 canvasResizeObserver.observe(canvas);
@@ -252,8 +256,24 @@ function computeFps() {
 	times.push(now);
 }
 
+function calculateZoomLevel(size) {
+	for (let i = 0; i < ZOOM_LEVEL_THRESHOLDS.length; i++) {
+		if (size < ZOOM_LEVEL_THRESHOLDS[i]) {
+			return 1 - (i * 0.1);
+		}
+	}
+	return 0.6;
+}
+
 let zoomLevel = 1; // Initial zoom level
 const zoomStep = 0.1; // How much to zoom in/out each time
+
+
+function drawGameOverScreen() {
+	context.font = `${FONT_SIZE} ${FONT_FAMILY}`;
+	context.fillStyle = 'black';
+	context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+}
 
 function render() {
 	computeFps();
@@ -261,34 +281,22 @@ function render() {
 
 	if (stop) {
 		context.clearRect(0, 0, canvas.width, canvas.height);
-		context.font = '48px serif';
-		context.fillStyle = 'black';
-		context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+		drawGameOverScreen();
 		return;
 	}
+
 	if (!zoomViaScroll) {
-		if (player.size < 50) {
-			zoomLevel = 1;
-		} else if (player.size < 100) {
-			zoomLevel = 0.9;
-		} else if (player.size < 200) {
-			zoomLevel = 0.8;
-		} else if (player.size < 400) {
-			zoomLevel = 0.7;
-		} else if (player.size < 800) {
-			zoomLevel = 0.6;
-		}
+		zoomLevel = calculateZoomLevel(player.size);
 	}
 
 	context.clearRect(0, 0, canvas.width, canvas.height);
-
 	context.scale(zoomLevel, zoomLevel);
 
 	const offsetX = (-(player.x) + (canvas.width / (2 * zoomLevel)));
 	const offsetY = (-(player.y) + (canvas.height / (2 * zoomLevel)));
-
 	context.translate(offsetX, offsetY);
 
+	// Draw map and entities
 	map.drawDecor(context, player, canvas.width / (2 * zoomLevel) + player.size, canvas.height / (2 * zoomLevel) + player.size);
 	map.drawFood(context, foodQuadTree, player, canvas.width / (2 * zoomLevel), canvas.height / (2 * zoomLevel));
 
@@ -303,22 +311,16 @@ function render() {
 }
 
 function zoomIn() {
-	zoomLevel += zoomStep;
-	if (zoomLevel > 2) zoomLevel = 2;
+	zoomLevel = Math.min(zoomLevel + zoomStep, 2);
 }
 
 function zoomOut() {
-	zoomLevel -= zoomStep;
-	if (zoomLevel < 0.5) zoomLevel = 0.5; // Limit minimum zoom
+	zoomLevel = Math.max(zoomLevel - zoomStep, 0.5); // Limit minimum zoom
 }
 
 document.addEventListener('wheel', (event) => {
 	zoomViaScroll = true;
-	if (event.deltaY > 0) {
-		zoomOut(); // Zoom out on scroll down
-	} else {
-		zoomIn(); // Zoom in on scroll up
-	}
+	(event.deltaY > 0) ? zoomOut() : zoomIn(); // Zoom in/out based on scroll direction
 });
 
 function handleBonus(p) {
