@@ -13,7 +13,7 @@ export function handleMouseDirection(event) {
 
 export function movePlayer(player, map) {
 	const angleDiff = player.targetDeg - player.deg;
-
+	console.log(player.deg);
 	if (Math.abs(angleDiff) > Math.PI) {
 		if (angleDiff > 0) {
 			player.deg += (angleDiff - 2 * Math.PI) * INERTIA;

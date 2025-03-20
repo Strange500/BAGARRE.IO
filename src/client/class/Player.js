@@ -24,8 +24,9 @@ export class Player {
 		this.id = id;
 		this.speed = 5;
 		this.ready = false;
-		this.deg = 0;
 		this.keyPressed = [];
+		this.deg = Math.random() * 2 * Math.PI;
+		this.targetDeg = this.deg;
 	}
 
 	increaseSize(amount) {
