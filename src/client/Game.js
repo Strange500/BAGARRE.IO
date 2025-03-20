@@ -2,8 +2,7 @@ import { Player } from './class/Player.js';
 import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
 import {
-	handleKeydown,
-	handleKeyup,
+	handleMouseDirection,
 	movePlayer,
 } from './handlers/MovementPlayerHandler.js';
 import { Food } from './class/Food.js';
@@ -12,7 +11,7 @@ import { io } from 'socket.io-client';
 import { updatePlayerSheet } from '../server/pHandler.js';
 import { showBonus } from './handlers/BonusHandler.js';
 
-const canvas = document.querySelector('.gameCanvas');
+export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
@@ -285,8 +284,9 @@ function updateGame() {
 	players.sort((a, b) => a.size - b.size);
 }
 
-document.addEventListener('keydown', handleKeydown);
-document.addEventListener('keyup', handleKeyup);
+//document.addEventListener('keydown', handleKeydown);
+//document.addEventListener('keyup', handleKeyup);
+document.addEventListener('mousemove', handleMouseDirection);
 setInterval(() => {
 	if (player) {
 		updatePlayerSheet(player);

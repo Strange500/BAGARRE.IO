@@ -1,57 +1,48 @@
-import { player } from "../Game.js";
+import { canvas, player } from "../Game.js";
 
+const INERTIA = 0.1;
+const MAX_SPEED = 5;
 
-export function handleKeydown(event) {
-	switch (event.key) {
-		case 'ArrowUp':
-		case 'z':
-			player.yDirection = -1;
-			break;
-		case 'ArrowDown':
-		case 's':
-			player.yDirection = 1;
-			break;
-		case 'ArrowLeft':
-		case 'q':
-			player.xDirection = -1;
-			break;
-		case 'ArrowRight':
-		case 'd':
-			player.xDirection = 1;
-			break;
-	}
-}
+export function handleMouseDirection(event) {
+	const rect = canvas.getBoundingClientRect();
+	const canvasMiddleX = rect.width / 2;
+	const canvasMiddleY = rect.height / 2;
 
-export function handleKeyup(event) {
-	switch (event.key) {
-		case 'ArrowUp':
-		case 'z':
-		case 'ArrowDown':
-		case 's':
-			player.yDirection = 0;
-			break;
-		case 'ArrowLeft':
-		case 'q':
-		case 'ArrowRight':
-		case 'd':
-			player.xDirection = 0;
-			break;
-	}
+	player.targetDeg = Math.atan2(event.clientY - canvasMiddleY, event.clientX - canvasMiddleX);
 }
 
 export function movePlayer(player, map) {
-	const newX = player.x + (player.speed * player.xDirection);
-	const newY = player.y + (player.speed * player.yDirection);
+	const angleDiff = player.targetDeg - player.deg;
+
+	if (Math.abs(angleDiff) > Math.PI) {
+		if (angleDiff > 0) {
+			player.deg += (angleDiff - 2 * Math.PI) * INERTIA;
+		} else {
+			player.deg += (angleDiff + 2 * Math.PI) * INERTIA;
+		}
+	} else {
+		player.deg += angleDiff * INERTIA;
+	}
+
+	player.deg = (player.deg + 2 * Math.PI) % (2 * Math.PI);
+
+	player.velocityX = Math.cos(player.deg) * MAX_SPEED;
+	player.velocityY = Math.sin(player.deg) * MAX_SPEED;
+
+	const newX = player.x + player.velocityX;
+	const newY = player.y + player.velocityY;
+
 	if (newX < 0) {
 		player.x = 0;
-	}else if (newX > map.width) {
+	} else if (newX > map.width) {
 		player.x = map.width;
-	}else {
+	} else {
 		player.x = newX;
 	}
+
 	if (newY < 0) {
 		player.y = 0;
-	}else if (newY > map.height) {
+	} else if (newY > map.height) {
 		player.y = map.height;
 	} else {
 		player.y = newY;

@@ -10,6 +10,8 @@ export class Player {
 	yDirection;
 	speed;
 	ready;
+	deg;
+	keyPressed;
 
 	constructor(name, x, y, id) {
 		this.name = name;
@@ -22,6 +24,8 @@ export class Player {
 		this.id = id;
 		this.speed = 5;
 		this.ready = false;
+		this.deg = 0;
+		this.keyPressed = [];
 	}
 
 	increaseSize(amount) {

@@ -66,11 +66,19 @@ export class GameMap {
         const playerIsYVisible = (player.y - player.size < maxY) && (player.y + player.size > minY);
 
         if (playerIsXVisible && playerIsYVisible) {
+
+
             context.beginPath();
             context.arc(player.x, player.y, player.size, 0, 2 * Math.PI);
             context.fillStyle = 'red';
             context.fill();
             context.strokeStyle = 'green';
+            context.stroke();
+            context.beginPath();
+            // draw line from center of player to the direction
+            context.moveTo(player.x, player.y);
+            context.lineTo(player.x + player.xDirection * 10, player.y + player.yDirection * 10);
+            context.strokeStyle = 'black';
             context.stroke();
             return true;
         }
