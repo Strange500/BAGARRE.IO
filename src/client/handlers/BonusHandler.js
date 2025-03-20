@@ -16,6 +16,13 @@ export const RandomBonus = () => {
 export function showBonus(bonusList) {
 	const container = document.querySelector('.BonusList');
 
+	if (container.querySelectorAll('div').length >= 3) {
+		return;
+	}
+
+	console.log('MERDE');
+
+	container.style.display = 'flex';
 	bonusList.forEach(bonus => {
 		const bonusItem = document.createElement('div');
 		bonusItem.className = 'bonus-item';
@@ -30,6 +37,4 @@ export function showBonus(bonusList) {
 		bonusItem.appendChild(text);
 		container.appendChild(bonusItem);
 	});
-
-	document.body.appendChild(container);
 }
