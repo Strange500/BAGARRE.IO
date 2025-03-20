@@ -10,6 +10,8 @@ import { io } from 'socket.io-client';
 import { updatePlayerSheet } from '../server/pHandler.js';
 import { showBonus } from './handlers/BonusHandler.js';
 import { movePlayer } from '../server/movement.js';
+import { soundManager } from './handlers/SoundHandler';
+
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -17,21 +19,11 @@ const pingDiv = document.querySelector('#ping');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 
-const audiKill = document.querySelector('#audioKill');
-const audiEat = document.querySelector('#audioEat');
-const audiBonus = document.querySelector('#audioBonus');
-const theme = document.querySelector('#theme');
-const gun = document.querySelector('#gun');
-const lose = document.querySelector('#lose');
-const win = document.querySelector('#win');
-
-
 const players = [];
 let foodQuadTree;
 let map;
 export let socket;
 export let player;
-let nbFrame = 0;
 
 const ZOOM_LEVEL_THRESHOLDS = [50, 100, 200, 400, 800];
 const FONT_SIZE = '48px';
@@ -176,11 +168,9 @@ function launchClientGame() {
 				foodQuadTree.remove(f);
 			}
 		}
-
 		const res = p.addFood(data.food.bonus);
-		console.log(`new size: ${p.size}`);
 		if (p.id === player.id) {
-			audiEat.play();
+			soundManager.playEatSound();
 			if (res) {
 				socket.emit('level:up', '');
 			}
@@ -197,7 +187,7 @@ function launchClientGame() {
 	});
 
 	socket.on('player:killed', content => {
-		audiKill.play();
+		soundManager.playKillSound();
 		const p = players.find(p => p.id === content.playerId);
 		const target = players.find(p => p.id === content.targetId);
 		if (p && target) {
@@ -215,29 +205,20 @@ function launchClientGame() {
 
 	socket.on('game:end', (id) => {
 		console.log('Game ended');
-		setTimeout(() => {
-			gun.play().then(
-				() => {
-					setTimeout(() => {
-						console.log(id, player.id);
-						if (id === player.id) {
-							win.play();
-						} else {
-							lose.play();
-						}
-					}, gun.duration * 1000);
+		clearInterval(scInter);
+		clearInterval(updInter);
+		stop = true;
+		soundManager.stopTheme()
+		if (id === player.id) {
+			soundManager.playVictoryTheme()
+		} else {
+			soundManager.playLoseTheme()
+		}
 
-				}
-			)
-
-			clearInterval(updInter);
-			clearInterval(scInter);
-			stop = true;
-		}, 1000);
 	});
 
 	socket.on('player:bonus', content => {
-		audiBonus.play();
+		soundManager.playBonusSound();
 		const listBonus = content;
 		showBonus(listBonus);
 	});
@@ -375,9 +356,5 @@ setInterval(() => {
 	if (player) {
 		updatePlayerSheet(player);
 	}
-	if (theme.paused) {
-		theme.play();
-		theme.loop = true;
-		theme.volume = 0.5;
-	}
+	soundManager.forceThemeStart();
 }, 1000);
