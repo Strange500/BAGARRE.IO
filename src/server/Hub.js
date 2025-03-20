@@ -3,6 +3,7 @@ import { GameMap } from '../client/class/Map.js';
 import { Player } from '../client/class/Player.js';
 import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
+import { RandomBonus } from '../client/handlers/BonusHandler.js';
 
 const MAX_PLAYERS = 3;
 const MAX_FOOD = 100;
@@ -233,6 +234,11 @@ export class Hub {
                     });
                 }
             }
+        });
+
+        socket.on('level:up', content => {
+            const p = this.players.find(p => p.id === content.playerId);
+            socket.emit('player:bonus', RandomBonus());
         });
     }
 

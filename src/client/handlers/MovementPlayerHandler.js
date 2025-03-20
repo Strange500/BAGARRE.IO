@@ -1,4 +1,4 @@
-import {player} from "../Game";
+import { player } from "../Game.js";
 
 
 export function handleKeydown(event) {

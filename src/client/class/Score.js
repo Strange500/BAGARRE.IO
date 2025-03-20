@@ -42,7 +42,9 @@ export class Score {
 		if (this.exp >= this.level * 10) {
 			this.exp = 0;
 			this.level++;
+			return true;
 		}
+		return false;
 	}
 
 	getTotalScore() {
@@ -58,4 +60,3 @@ export class Score {
 		this.coefScore = 1;
 	}
 }
-

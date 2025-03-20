@@ -31,7 +31,7 @@ export class Player {
 	addFood(amount) {
 		this.score.addFoodScore(amount / 10);
 		this.increaseSize(amount / 10);
-		this.score.gainExp(amount);
+		return this.score.gainExp(amount);
 
 	}
 
@@ -42,8 +42,7 @@ export class Player {
 	addKill(amount) {
 		this.score.addKillScore(amount);
 		this.increaseSize(amount * 0.2);
-		this.score.gainExp(amount);
-
+		return this.score.gainExp(amount);
 	}
 
 	applyDecay(rate) {

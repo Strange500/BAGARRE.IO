@@ -1,4 +1,4 @@
-import { Player } from '../client/class/Player';
+import { Player } from '../client/class/Player.js';
 
 const KILL_EVENT = 'kill';
 const EAT_EVENT = 'eat';

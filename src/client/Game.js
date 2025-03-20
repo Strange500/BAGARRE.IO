@@ -6,10 +6,11 @@ import {
 	handleKeyup,
 	movePlayer,
 } from './handlers/MovementPlayerHandler.js';
-import { Food } from './class/Food';
+import { Food } from './class/Food.js';
 import { Circle, Quadtree } from '@timohausmann/quadtree-ts';
 import { io } from 'socket.io-client';
 import { updatePlayerSheet } from '../server/pHandler.js';
+import { showBonus } from './handlers/BonusHandler.js';
 
 const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -19,7 +20,7 @@ const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 const players = [];
 let foodQuadTree;
 let map;
-let socket;
+export let socket;
 export let player;
 let nbFrame = 0;
 
@@ -156,8 +157,11 @@ function launchClientGame() {
 		console.log(
 			`Player ${p.name} ate food with bonus ${data.food.bonus}, current size: ${p.size}`
 		);
-		p.addFood(data.food.bonus);
+		const res = p.addFood(data.food.bonus);
 		console.log(`new size: ${p.size}`);
+		if (p.id == player.id && res) {
+			socket.emit('level:up', '');
+		}
 	});
 
 	socket.on('player:moved', content => {
@@ -189,6 +193,11 @@ function launchClientGame() {
 		clearInterval(updInter);
 		clearInterval(scInter);
 		stop = true;
+	});
+
+	socket.on('player:bonus', content => {
+		const listBonus = content;
+		showBonus(listBonus);
 	});
 }
 
