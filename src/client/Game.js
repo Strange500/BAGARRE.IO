@@ -1,11 +1,15 @@
 import { Player } from './class/Player.js';
 import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
-import { handleKeydown, handleKeyup, movePlayer } from './handlers/MovementPlayerHandler.js';
+import {
+	handleKeydown,
+	handleKeyup,
+	movePlayer,
+} from './handlers/MovementPlayerHandler.js';
 import { Food } from './class/Food';
-import { Circle, Quadtree } from "@timohausmann/quadtree-ts";
+import { Circle, Quadtree } from '@timohausmann/quadtree-ts';
 import { io } from 'socket.io-client';
-import { updatePlayerSheet } from './class/Player.js';
+import { updatePlayerSheet } from '../server/pHandler.js';
 
 const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -43,13 +47,13 @@ function setupSocket() {
 		console.log('Disconnected from server');
 	});
 
-	socket.on('connect_error', (error) => {
+	socket.on('connect_error', error => {
 		console.error('Failed to connect to server:', error);
 	});
 }
 
 function requestRoomChoices(socket) {
-	socket.on('room:choices', (rooms) => {
+	socket.on('room:choices', rooms => {
 		console.log('Available rooms:', rooms);
 		const room = prompt('Enter room name: ' + rooms.join(', '));
 		socket.emit('room:join', room);
@@ -71,31 +75,40 @@ function setupUser(socket) {
 		}
 		if (newPlayer.id === socket.id) {
 			if (player) return;
-			player = new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id);
+			player = new Player(
+				newPlayer.name,
+				newPlayer.x,
+				newPlayer.y,
+				newPlayer.id
+			);
 			players.push(player);
 		} else {
-			players.push(new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id));
+			players.push(
+				new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id)
+			);
 		}
 	}
-	socket.on('room:newPlayer', (newPlayer) => {
+	socket.on('room:newPlayer', newPlayer => {
 		console.log('New player in room:', newPlayer.name);
 		addUser(newPlayer);
-
 	});
-	socket.on('room:players', (newPlayers) => {
-		console.log('Players in room:', newPlayers.map(p => p.name));
-		newPlayers.forEach((newPlayer) => {
+	socket.on('room:players', newPlayers => {
+		console.log(
+			'Players in room:',
+			newPlayers.map(p => p.name)
+		);
+		newPlayers.forEach(newPlayer => {
 			addUser(newPlayer);
 		});
 		if (player) {
 			socket.emit('init:receivedPlayers');
-			socket.on('init:map', (m) => {
+			socket.on('init:map', m => {
 				map = new GameMap(m.width, m.height);
 				socket.emit('init:mapReceived');
-				socket.on('init:food', (food) => {
+				socket.on('init:food', food => {
 					foodQuadTree = new Quadtree({
 						width: map.width,
-						height: map.height
+						height: map.height,
 					});
 					food.forEach(f => {
 						foodQuadTree.insert(new Food(f.bonus, f.x, f.y));
@@ -112,7 +125,6 @@ function setupUser(socket) {
 						launchClientGame(socket);
 					});
 				});
-
 			});
 		}
 	});
@@ -128,24 +140,27 @@ function launchClientGame() {
 
 	requestAnimationFrame(render);
 
-	socket.on("food:ate", (data) => {
+	socket.on('food:ate', data => {
 		const p = players.find(p => p.id === data.playerId);
 		if (!p) return;
 		const f = new Food(data.food.bonus, data.food.x, data.food.y);
-		const food = foodQuadTree.retrieve(new Circle({ x: f.x, y: f.y, r: f.size }));
+		const food = foodQuadTree.retrieve(
+			new Circle({ x: f.x, y: f.y, r: f.size })
+		);
 		if (food.length > 0) {
 			const f = food.find(fo => fo.x === data.food.x && fo.y === data.food.y);
 			if (f) {
 				foodQuadTree.remove(f);
 			}
 		}
-		console.log(`Player ${p.name} ate food with bonus ${data.food.bonus}, current size: ${p.size}`);
+		console.log(
+			`Player ${p.name} ate food with bonus ${data.food.bonus}, current size: ${p.size}`
+		);
 		p.addFood(data.food.bonus);
 		console.log(`new size: ${p.size}`);
-
 	});
 
-	socket.on('player:moved', (content) => {
+	socket.on('player:moved', content => {
 		const p = players.find(p => p.id === content.playerId);
 		if (p) {
 			p.x = content.x;
@@ -153,7 +168,7 @@ function launchClientGame() {
 		}
 	});
 
-	socket.on('player:killed', (content) => {
+	socket.on('player:killed', content => {
 		const p = players.find(p => p.id === content.playerId);
 		const target = players.find(p => p.id === content.targetId);
 		if (p && target) {
@@ -192,10 +207,18 @@ function render() {
 	context.translate(offsetX, offsetY);
 
 	map.drawDecor(context, player, canvas.width / 2, canvas.height / 2);
-	map.drawFood(context, foodQuadTree, player, canvas.width / 2, canvas.height / 2);
+	map.drawFood(
+		context,
+		foodQuadTree,
+		player,
+		canvas.width / 2,
+		canvas.height / 2
+	);
 
 	players.forEach(p => {
-		if (map.drawPlayer(context, p, player, canvas.width / 2, canvas.height / 2)) {
+		if (
+			map.drawPlayer(context, p, player, canvas.width / 2, canvas.height / 2)
+		) {
 			map.drawName(context, p);
 		}
 	});
@@ -203,22 +226,23 @@ function render() {
 	context.resetTransform();
 	nbFrame++;
 
-
 	requestAnimationFrame(render);
 }
 
 function handleBonus(p) {
-	foodQuadTree.retrieve(new Circle({ x: p.x, y: p.y, r: p.size })).forEach(food => {
-		const distance = Math.hypot(food.x - p.x, food.y - p.y);
-		if (distance <= p.size) {
-			socket.emit('player:eat', {
-				playerId: p.id,
-				x: food.x,
-				y: food.y,
-				bonus: food.bonus
-			});
-		}
-	});
+	foodQuadTree
+		.retrieve(new Circle({ x: p.x, y: p.y, r: p.size }))
+		.forEach(food => {
+			const distance = Math.hypot(food.x - p.x, food.y - p.y);
+			if (distance <= p.size) {
+				socket.emit('player:eat', {
+					playerId: p.id,
+					x: food.x,
+					y: food.y,
+					bonus: food.bonus,
+				});
+			}
+		});
 }
 
 function handleKill(p, players) {
@@ -234,7 +258,7 @@ function handleKill(p, players) {
 			p.addKill(other.size);
 			socket.emit('player:kill', {
 				playerId: p.id,
-				targetId: other.id
+				targetId: other.id,
 			});
 		}
 	}
@@ -255,7 +279,7 @@ function updateGame() {
 document.addEventListener('keydown', handleKeydown);
 document.addEventListener('keyup', handleKeyup);
 setInterval(() => {
-    if (player) {
-        updatePlayerSheet(player);
-    }
+	if (player) {
+		updatePlayerSheet(player);
+	}
 }, 1000);
