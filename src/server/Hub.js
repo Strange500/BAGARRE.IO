@@ -6,8 +6,8 @@ import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
 import { movePlayer } from './movement.js';
 
-const MAX_PLAYERS = 3;
-const MAX_FOOD = 100;
+const MAX_PLAYERS = 5;
+const MAX_FOOD = 1000;
 const MAX_FOOD_BONUS = 15;
 
 
@@ -40,7 +40,7 @@ export class Hub {
 
     _genRandomFood() {
         return new Food(
-          Math.random() * MAX_FOOD_BONUS,
+          (Math.random() * (MAX_FOOD_BONUS -1)) + 1,
           Math.random() * this.map.width,
           Math.random() * this.map.height
         );
@@ -99,8 +99,7 @@ export class Hub {
     async handleIoConnection(socket) {
         console.log('A user is connected to room', this.name);
         socket.emit('room:joined');
-        if (this.status === 'ended') {
-            socket.emit('game:end');
+        if (this.status === 'ended') {socket.emit('game:end');
             return;
         }
         socket.on('init:ready', (playerName) => {
@@ -281,7 +280,7 @@ export class Hub {
                 this.players.forEach(player => {
                     if (player.id === bot.id) return;
                     const distance = Math.hypot(player.x - bot.x, player.y - bot.y);
-                    if (distance < player.size) {
+                    if (distance < player.size && bot.size > player.size) {
                         console.log(`Bot ${bot.name} killed ${player.name}`);
                         bot.addKill(player.size);
                         this.players.splice(this.players.indexOf(player), 1);
@@ -305,7 +304,7 @@ export class Hub {
        }
         console.log('Game ended');
         clearInterval(loop);
-        this._sendToRoom('game:end');
+        this._sendToRoom('game:end', this.players[0].id);
 
     }
 
@@ -320,7 +319,7 @@ export class Hub {
      * or if there are only bots left
      */
     isGameEnded() {
-        return this.players.length === 1 || this.players.length === this.bots.length;
+        return this.players.length === 1;
     }
 
 

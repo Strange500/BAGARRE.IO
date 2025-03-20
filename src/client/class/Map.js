@@ -75,11 +75,6 @@ export class GameMap {
             context.strokeStyle = 'green';
             context.stroke();
             context.beginPath();
-            // draw line from center of player to the direction
-            context.moveTo(player.x, player.y);
-            context.lineTo(player.x + player.xDirection * 10, player.y + player.yDirection * 10);
-            context.strokeStyle = 'black';
-            context.stroke();
             return true;
         }
         return false;

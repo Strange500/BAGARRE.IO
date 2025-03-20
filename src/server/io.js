@@ -62,7 +62,7 @@ function joinExistingRoom(socket, roomName) {
 // Function to create a new room
 function createNewRoom(socket, roomName) {
 	console.log('Creating new room', roomName);
-	hubs[roomName] = new Hub({ maxSizeX: 5000, maxSizeY: 5000 }, io, roomName);
+	hubs[roomName] = new Hub({ maxSizeX: 1000, maxSizeY: 1000 }, io, roomName);
 	socket.join(roomName);
 	users[socket.id] = roomName;
 }

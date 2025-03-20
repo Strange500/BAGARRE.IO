@@ -20,8 +20,6 @@ export function showBonus(bonusList) {
 		return;
 	}
 
-	console.log('MERDE');
-
 	container.style.display = 'flex';
 	bonusList.forEach(bonus => {
 		const bonusItem = document.createElement('div');

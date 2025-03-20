@@ -17,6 +17,15 @@ const pingDiv = document.querySelector('#ping');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 
+const audiKill = document.querySelector('#audioKill');
+const audiEat = document.querySelector('#audioEat');
+const audiBonus = document.querySelector('#audioBonus');
+const theme = document.querySelector('#theme');
+const gun = document.querySelector('#gun');
+const lose = document.querySelector('#lose');
+const win = document.querySelector('#win');
+
+
 const players = [];
 let foodQuadTree;
 let map;
@@ -163,13 +172,15 @@ function launchClientGame() {
 				foodQuadTree.remove(f);
 			}
 		}
-		console.log(
-			`Player ${p.name} ate food with bonus ${data.food.bonus}, current size: ${p.size}`
-		);
+
 		const res = p.addFood(data.food.bonus);
 		console.log(`new size: ${p.size}`);
-		if (p.id == player.id && res) {
-			socket.emit('level:up', '');
+		if (p.id === player.id) {
+			audiEat.play();
+			if (res) {
+				socket.emit('level:up', '');
+			}
+
 		}
 	});
 
@@ -182,6 +193,7 @@ function launchClientGame() {
 	});
 
 	socket.on('player:killed', content => {
+		audiKill.play();
 		const p = players.find(p => p.id === content.playerId);
 		const target = players.find(p => p.id === content.targetId);
 		if (p && target) {
@@ -197,14 +209,31 @@ function launchClientGame() {
 		}
 	});
 
-	socket.on('game:end', () => {
+	socket.on('game:end', (id) => {
 		console.log('Game ended');
-		clearInterval(updInter);
-		clearInterval(scInter);
-		stop = true;
+		setTimeout(() => {
+			gun.play().then(
+				() => {
+					setTimeout(() => {
+						console.log(id, player.id);
+						if (id === player.id) {
+							win.play();
+						} else {
+							lose.play();
+						}
+					}, gun.duration * 1000);
+
+				}
+			)
+
+			clearInterval(updInter);
+			clearInterval(scInter);
+			stop = true;
+		}, 1000);
 	});
 
 	socket.on('player:bonus', content => {
+		audiBonus.play();
 		const listBonus = content;
 		showBonus(listBonus);
 	});
@@ -308,11 +337,14 @@ function updateGame() {
 	players.sort((a, b) => a.size - b.size);
 }
 
-//document.addEventListener('keydown', handleKeydown);
-//document.addEventListener('keyup', handleKeyup);
 document.addEventListener('mousemove', handleMouseDirection);
 setInterval(() => {
 	if (player) {
 		updatePlayerSheet(player);
+	}
+	if (theme.paused) {
+		theme.play();
+		theme.loop = true;
+		theme.volume = 0.5;
 	}
 }, 1000);
