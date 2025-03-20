@@ -4,6 +4,7 @@ import { Player } from '../client/class/Player.js';
 import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
+import { movePlayer } from './movement.js';
 
 const MAX_PLAYERS = 3;
 const MAX_FOOD = 100;
@@ -246,12 +247,7 @@ export class Hub {
         return setInterval(() => {
             this.bots.forEach(bot => {
                 bot.nextMove(this.food, this.players);
-                bot.x += bot.speed * bot.xDirection;
-                bot.y += bot.speed * bot.yDirection;
-                if (bot.x > this.map.width) bot.x = this.map.width;
-                if (bot.x < 0) bot.x = 0;
-                if (bot.y > this.map.height) bot.y = this.map.height;
-                if (bot.y < 0) bot.y = 0;
+                movePlayer(bot, this.map);
                 this._sendToRoom('player:moved', {
                     x: bot.x,
                     y: bot.y,

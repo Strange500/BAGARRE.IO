@@ -3,13 +3,13 @@ import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
 import {
 	handleMouseDirection,
-	movePlayer,
 } from './handlers/MovementPlayerHandler.js';
 import { Food } from './class/Food.js';
 import { Circle, Quadtree } from '@timohausmann/quadtree-ts';
 import { io } from 'socket.io-client';
 import { updatePlayerSheet } from '../server/pHandler.js';
 import { showBonus } from './handlers/BonusHandler.js';
+import { movePlayer } from '../server/movement.js';
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');

@@ -34,17 +34,15 @@ export class Bot extends Player{
             if (distanceToNearestPlayer <= distanceThreshold) {
                 if (distanceToNearestPlayer > 0) {
                     if (this.size > nearestPlayer.size) {
-                        this.xDirection = (deltaXNearestPlayer / distanceToNearestPlayer);
-                        this.yDirection = (deltaYNearestPlayer / distanceToNearestPlayer);
+                        this.targetDeg = Math.atan2(deltaYNearestPlayer, deltaXNearestPlayer);
 
                     }else if (this.size < nearestPlayer.size) {
-                        this.xDirection = -(deltaXNearestPlayer / distanceToNearestPlayer);
-                        this.yDirection = -(deltaYNearestPlayer / distanceToNearestPlayer);
+                        this.targetDeg = Math.atan2(-deltaYNearestPlayer, -deltaXNearestPlayer);
+
 
                     }
                 } else {
-                    this.xDirection = 0;
-                    this.yDirection = 0;
+                    this.targetDeg = Math.random() * 2 * Math.PI;
                 }
             }
             else {
@@ -72,12 +70,10 @@ export class Bot extends Player{
                     }
                 })
                 if (distance > 0) {
-                    this.xDirection = deltaXFood / distance;
-                    this.yDirection = deltaYFood / distance;
+                   this.targetDeg = Math.atan2(deltaYFood, deltaXFood);
                 }
                 else {
-                    this.xDirection = 0;
-                    this.yDirection = 0;
+                    this.targetDeg = Math.random() * 2 * Math.PI;
                 }
 
             }
