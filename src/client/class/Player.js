@@ -26,12 +26,13 @@ export class Player {
 
 	increaseSize(amount) {
 		this.size += amount;
-		this.score.gainExp(amount);
 	}
 
 	addFood(amount) {
 		this.score.addFoodScore(amount / 10);
 		this.increaseSize(amount / 10);
+		this.score.gainExp(amount);
+
 	}
 
 	addBonus(amount) {
@@ -41,6 +42,8 @@ export class Player {
 	addKill(amount) {
 		this.score.addKillScore(amount);
 		this.increaseSize(amount * 0.2);
+		this.score.gainExp(amount);
+
 	}
 
 	applyDecay(rate) {
@@ -59,13 +62,18 @@ export function updatePlayerSheet(player) {
 
     playerSheetBody.innerHTML = "";
 
-    const row = document.createElement("tr");
 
     const nameRow = document.createElement("tr");
     const nameCell = document.createElement("td");
     nameCell.textContent = `Name: ${player.name}`;
     nameCell.colSpan = 2;
     nameRow.appendChild(nameCell);
+
+		const levelRow = document.createElement("tr");
+		const levelCell = document.createElement("td");
+		levelRow.textContent = `Level: ${player.score.level}`;
+		levelCell.colSpan = 2;
+		levelRow.appendChild(nameCell);
 
     const sizeRow = document.createElement("tr");
     const sizeCell = document.createElement("td");
@@ -75,11 +83,12 @@ export function updatePlayerSheet(player) {
 
     const scoreRow = document.createElement("tr");
     const scoreCell = document.createElement("td");
-	scoreCell.textContent = `Score: ${player.score.getTotalScore().toFixed(2)}`;
+		scoreCell.textContent = `Score: ${player.score.getTotalScore().toFixed(2)}`;
     scoreCell.colSpan = 2;
     scoreRow.appendChild(scoreCell);
 
     playerSheetBody.appendChild(nameRow);
+		playerSheetBody.appendChild(levelRow)
     playerSheetBody.appendChild(sizeRow);
     playerSheetBody.appendChild(scoreRow);
 }
