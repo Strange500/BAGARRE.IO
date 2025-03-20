@@ -237,6 +237,10 @@ export class Hub {
             }
         });
 
+        socket.on('ping', content => {
+            socket.emit('pong', content);
+        });
+
         socket.on('level:up', content => {
             const p = this.players.find(p => p.id === content.playerId);
             socket.emit('player:bonus', RandomBonus());

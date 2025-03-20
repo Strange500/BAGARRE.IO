@@ -13,6 +13,7 @@ import { movePlayer } from '../server/movement.js';
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
+const pingDiv = document.querySelector('#ping');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 
@@ -131,11 +132,20 @@ function setupUser(socket) {
 }
 let stop = false;
 
+let startPing;
+
 function launchClientGame() {
 	const updInter = setInterval(updateGame, 1000 / 60);
 	const scInter = setInterval(() => {
 		simulateScores(players);
 		updateScoreboard(players);
+		socket.emit('ping', '')
+		startPing = performance.now();
+		socket.on('pong', () => {
+			// round to 3 decimal
+			pingDiv.textContent = `Ping: ${Math.round((performance.now() - startPing) * 1000) / 1000} ms`;
+		});
+		fpsDiv.textContent = `FPS: ${fps}`;
 	}, 1000);
 
 	requestAnimationFrame(render);
@@ -200,7 +210,22 @@ function launchClientGame() {
 	});
 }
 
+const times = [];
+let fps = 0;
+
+function computeFps() {
+	const now = performance.now();
+	while (times.length > 0 && times[0] <= now - 1000) {
+		times.shift();
+	}
+	times.push(now);
+}
+
 function render() {
+	computeFps();
+	fps = times.length;
+
+
 	if (stop) {
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		context.font = '48px serif';
@@ -232,7 +257,6 @@ function render() {
 	});
 
 	context.resetTransform();
-	nbFrame++;
 
 	requestAnimationFrame(render);
 }
