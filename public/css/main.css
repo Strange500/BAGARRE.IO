@@ -104,3 +104,55 @@ h1 em {
 .playersheet tr:last-child td {
     border-bottom: none;
 }
+
+.BonusList {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 30vh;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
+}
+
+.BonusList .bonus-item {
+    flex: 0 0 calc(33.33% - 10px);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    width: 30%;
+    height: 100%;
+}
+
+.bonus-item img {
+    max-width: 80%;
+    height: auto;
+    display: block;
+}
+
+.bonus-item p {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
