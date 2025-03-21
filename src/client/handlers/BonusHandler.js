@@ -34,5 +34,11 @@ export function showBonus(bonusList) {
 		bonusItem.appendChild(img);
 		bonusItem.appendChild(text);
 		container.appendChild(bonusItem);
+
+		bonusItem.addEventListener('click', () => {
+			container.style.display = 'none';
+			container.innerHTML = '';
+			// do something with the bonus
+		});
 	});
 }
