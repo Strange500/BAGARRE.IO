@@ -1,4 +1,8 @@
 import { Score } from './Score.js';
+
+
+export const START_SIZE = 20;
+
 export class Player {
 	id;
 	name;
@@ -15,7 +19,7 @@ export class Player {
 
 	constructor(name, x, y, id) {
 		this.name = name;
-		this.size = 20;
+		this.size = START_SIZE;
 		this.score = new Score();
 		this.x = x;
 		this.y = y;

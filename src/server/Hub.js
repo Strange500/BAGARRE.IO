@@ -1,6 +1,6 @@
 import { Circle, Quadtree, Rectangle } from '@timohausmann/quadtree-ts';
 import { GameMap } from '../client/class/Map.js';
-import { Player } from '../client/class/Player.js';
+import { Player, START_SIZE } from '../client/class/Player.js';
 import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
@@ -300,7 +300,7 @@ export class Hub {
 
             this.bots.forEach(bot => {
                 this.players.forEach(player => {
-                    if (player.id === bot.id) return;
+                    if (player.id === bot.id || player.size === START_SIZE) return;
                     const distance = Math.hypot(player.x - bot.x, player.y - bot.y);
                     if (distance < player.size && bot.size > player.size) {
                         console.log(`Bot ${bot.name} killed ${player.name}`);
