@@ -89,11 +89,14 @@ function setupUser(socket) {
 				newPlayer.y,
 				newPlayer.id
 			);
+			player.image = newPlayer.image;
+			player.color = newPlayer.color;
 			players.push(player);
 		} else {
-			players.push(
-				new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id)
-			);
+			const p = new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id);
+			p.image = newPlayer.image;
+			p.color = newPlayer.color;
+			players.push(p);
 		}
 	}
 	socket.on('room:newPlayer', newPlayer => {
@@ -186,7 +189,10 @@ function launchClientGame() {
 		const bot = players.find(p => p.id === botid);
 		if (bot) {
 			players.splice(players.indexOf(bot), 1);
-			players.push(new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id));
+			const p  = new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id);
+			p.image = newPlayer.image;
+			p.color = newPlayer.color;
+			players.push();
 		}
 	})
 
