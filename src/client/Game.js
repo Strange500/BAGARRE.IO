@@ -159,8 +159,10 @@ function launchClientGame() {
 	}, 1000);
 
 	requestAnimationFrame(render);
+	let foodRemoveCpt = 0;
 
 	socket.on('food:ate', data => {
+		foodRemoveCpt++;
 		const p = players.find(p => p.id === data.playerId);
 		if (!p) return;
 		const f = new Food(data.food.bonus, data.food.x, data.food.y);
@@ -170,7 +172,11 @@ function launchClientGame() {
 		if (food.length > 0) {
 			const f = food.find(fo => fo.x === data.food.x && fo.y === data.food.y);
 			if (f) {
-				foodQuadTree.remove(f);
+				if (foodRemoveCpt === 100) {
+					foodQuadTree.remove(f);
+					foodRemoveCpt = 0;
+				}
+				foodQuadTree.remove(f, true);
 			}
 		}
 		const res = p.addFood(data.food.bonus);
@@ -222,10 +228,12 @@ function launchClientGame() {
 	});
 
 	socket.on("food:spawn", (content)=> {
-		const bonus = content.bonus;
-		const x = content.x;
-		const y = content.y;
-		foodQuadTree.insert(new Food(bonus, x, y))
+		for (let i = 1; i < content.length; i++) {
+			const bonus = content[i].bonus;
+			const x = content[i].x;
+			const y = content[i].y;
+			foodQuadTree.insert(new Food(bonus, x, y))
+		}
 	})
 
 	socket.on('game:end', (id) => {

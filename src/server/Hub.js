@@ -6,6 +6,8 @@ import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
 import { movePlayer } from './movement.js';
 
+const FOOD_BATCH = 100;
+let foodRemoveCpt = 0;
 
 async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -20,8 +22,8 @@ export class Hub {
     name;
     status;
     maxPlayers;
-    axFood;
-    axFoodBonus;
+    maxFood;
+    maxFoodBonus;
 
     constructor({ maxSizeX, maxSizeY }, ioServer, roomName, maxPlayers, MaxFood, MaxFoodBonus) {
         this.map = new GameMap(maxSizeX, maxSizeY);
@@ -37,6 +39,7 @@ export class Hub {
         this.maxPlayers = maxPlayers;
         this.maxFood = MaxFood;
         this.maxFoodBonus = MaxFoodBonus;
+        this.foodCpt = 0;
         this.initializeFood();
     }
 
@@ -220,8 +223,13 @@ export class Hub {
                 const distance = Math.hypot(nearest.x - player.x, nearest.y - player.y);
                 if (nearest && distance < player.size) {
                     this.addFood();
-                    console.log(`Player ${player.name} ate food`);
-                    this.food.remove(nearest);
+                    if (foodRemoveCpt >= FOOD_BATCH) {
+                        foodRemoveCpt = 0;
+                        this.food.remove(nearest);
+                    } else {
+                        foodRemoveCpt++;
+                        this.food.remove(nearest, true);
+                    }
                     player.addFood(nearest.bonus);
                     this._sendToRoom('food:ate', {
                         food: nearest,
@@ -289,7 +297,6 @@ export class Hub {
                 }));
                 const nearest = this._getNearestObject(bot, food);
                 if (nearest.nearest && nearest.distance < bot.size) {
-                    console.log(`Bot ${bot.name} ate food`);
                     this.food.remove(nearest.nearest);
                     this.addFood();
                     bot.addFood(nearest.nearest.bonus);
@@ -330,7 +337,6 @@ export class Hub {
         console.log('Game ended');
         clearInterval(loop);
         this._sendToRoom('game:end', this.players[0].id);
-
     }
 
     isOnlyBotLeft() {
@@ -357,8 +363,16 @@ export class Hub {
     }
 
     addFood() {
-        const f = this._genRandomFood();
-        this.food.insert(f);
-        this._sendToRoom("food:spawn", f);
+        this.foodCpt++;
+        if (this.foodCpt >= FOOD_BATCH) {
+            this.foodCpt = 0;
+            const array = []
+            for (let i = 0; i < FOOD_BATCH; i++) {
+                const f = this._genRandomFood();
+                array.push(f);
+                this.food.insert(f);
+            }
+            this._sendToRoom("food:spawn", array);
+        }
     }
 }
