@@ -13,7 +13,6 @@ export class Bot extends Player{
     }
 
     nextMove(foodQuadTree, players) {
-            this.speed = Math.min(MAX_SPEED, this.speed + SPEED_LEVEL);
             let deltaXNearestPlayer = 0;
             let deltaYNearestPlayer = 0;
             let distanceToNearestPlayer = Infinity;
@@ -34,14 +33,12 @@ export class Bot extends Player{
 
             const distanceThreshold = 300; // Threshold to chase the player
             if (distanceToNearestPlayer <= distanceThreshold) {
+                this.speed = Math.min(MAX_SPEED, this.speed + SPEED_LEVEL);
                 if (distanceToNearestPlayer > 0) {
                     if (this.size > nearestPlayer.size) {
                         this.targetDeg = Math.atan2(deltaYNearestPlayer, deltaXNearestPlayer);
-
                     }else if (this.size < nearestPlayer.size) {
                         this.targetDeg = Math.atan2(-deltaYNearestPlayer, -deltaXNearestPlayer);
-
-
                     }
                 } else {
                     this.targetDeg = Math.random() * 2 * Math.PI;
@@ -72,6 +69,12 @@ export class Bot extends Player{
                     }
                 })
                 if (distance > 0) {
+                   // slow down to reduce inertia if food is near
+                    if (distance < 100) {
+                        this.speed = Math.max(3, this.speed - SPEED_LEVEL);
+                    } else {
+                      this.speed = Math.min(MAX_SPEED, this.speed + SPEED_LEVEL);
+                    }
                    this.targetDeg = Math.atan2(deltaYFood, deltaXFood);
                 }
                 else {
