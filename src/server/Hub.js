@@ -6,10 +6,6 @@ import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
 import { movePlayer } from './movement.js';
 
-const MAX_PLAYERS = 5;
-const MAX_FOOD = 1000;
-const MAX_FOOD_BONUS = 15;
-
 
 async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -23,8 +19,11 @@ export class Hub {
     io;
     name;
     status;
+    maxPlayers;
+    axFood;
+    axFoodBonus;
 
-    constructor({ maxSizeX, maxSizeY }, ioServer, roomName) {
+    constructor({ maxSizeX, maxSizeY }, ioServer, roomName, maxPlayers, MaxFood, MaxFoodBonus) {
         this.map = new GameMap(maxSizeX, maxSizeY);
         this.players = [];
         this.bots = [];
@@ -35,19 +34,22 @@ export class Hub {
         this.io = ioServer; // Socket.io server instance
         this.name = roomName; // Room identifier
         this.status = 'waiting'; // 'waiting', 'started', 'ended'
+        this.maxPlayers = maxPlayers;
+        this.maxFood = MaxFood;
+        this.maxFoodBonus = MaxFoodBonus;
         this.initializeFood();
     }
 
     _genRandomFood() {
         return new Food(
-          (Math.random() * (MAX_FOOD_BONUS -1)) + 1,
+          (Math.random() * (this.maxFoodBonus -1)) + 1,
           Math.random() * this.map.width,
           Math.random() * this.map.height
         );
     }
 
     initializeFood() {
-        for (let i = 0; i < MAX_FOOD; i++) {
+        for (let i = 0; i < this.maxFood; i++) {
             const food = this._genRandomFood();
             this.food.insert(food);
         }
@@ -88,7 +90,7 @@ export class Hub {
     }
 
     _fillWithBots() {
-        while (this.players.length + this.bots.length < MAX_PLAYERS) {
+        while (this.players.length + this.bots.length < this.maxPlayers) {
             this._spawnBot();
         }
         this.bots.forEach(bot => {
@@ -107,15 +109,29 @@ export class Hub {
         });
     }
 
+    _canReplaceABot() {
+        return this.bots.length > 0;
+    }
+
     addPlayer(socket, playerName) {
-        if (this.players.length < MAX_PLAYERS) {
+        const replaceBot = this._canReplaceABot();
+        if (this.players.length < this.maxPlayers || replaceBot) {
             const player = new Player(
               playerName,
               Math.random() * this.map.width,
               Math.random() * this.map.height,
               socket.id
             );
-
+            if (replaceBot) {
+                player.ready = true;
+                const bot = this.bots.pop();
+                this.players.splice(this.players.indexOf(bot), 1);
+                console.log(`Bot ${bot.name} replaced by player ${player.name}`);
+                this._sendToRoom('room:replaceBot', {
+                    botId: bot.id,
+                    player: player
+                })
+            }
             this.players.push(player);
             this._sendToRoom('room:newPlayer', player);
             socket.emit('room:players', this.players);
@@ -127,7 +143,7 @@ export class Hub {
     }
 
     _addBot(bot) {
-        if (this.players.length < MAX_PLAYERS) {
+        if (this.players.length < this.maxPlayers) {
             this.players.push(bot);
             this._sendToRoom('room:newPlayer', bot);
         }
@@ -151,6 +167,12 @@ export class Hub {
                         if (player) {
                             player.ready = true;
                         }
+                        if (this.status === 'started') {
+                            player.ready = true;
+                            socket.emit('game:start');
+                            this._setListeners(socket);
+                            return;
+                        }
                         let allReady = true;
                         this.players.forEach(p => {
                             if (!p.ready) {
@@ -159,7 +181,7 @@ export class Hub {
                         });
                         this._setListeners(socket);
                         if (allReady) {
-                            this._start();
+                            this.start();
                         }
                     });
                 });
@@ -294,10 +316,11 @@ export class Hub {
         }, 1000 / 60);
     }
 
-    async _start() {
+    async start() {
         this._fillWithBots();
         const loop = this.startGameLoop();
         this._sendToRoom('game:start');
+        this.status = 'started';
 
        while (!this.isGameEnded()) {
           await sleep(1000);

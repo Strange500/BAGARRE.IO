@@ -180,6 +180,16 @@ function launchClientGame() {
 		}
 	});
 
+	socket.on('room:replaceBot', (content) => {
+		const botid = content.botId;
+		const newPlayer = content.player;
+		const bot = players.find(p => p.id === botid);
+		if (bot) {
+			players.splice(players.indexOf(bot), 1);
+			players.push(new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id));
+		}
+	})
+
 	socket.on('player:moved', content => {
 		const p = players.find(p => p.id === content.playerId);
 		if (p) {
