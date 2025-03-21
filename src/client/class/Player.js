@@ -2,6 +2,25 @@ import { Score } from './Score.js';
 
 
 export const START_SIZE = 20;
+const COLORS = ["red", "black", "white", "green", "yellow", "pink"]
+const ImageMap = {
+	'doge': "img/doge.webp",
+	'trump': "img/trump.webp",
+	'biden': "img/biden.webp",
+	'putin': "img/putin.webp",
+	'kim': "img/kim.webp",
+	'elon': "img/elon.webp",
+	"pepe": "img/pepe.webp",
+	"melenchon": "img/melenchon.png",
+	//"zemmour": "img/zemmour.webp",
+	//"castex": "img/castex.webp",
+	//"hollande": "img/hollande.webp",
+	//"sarkozy": "img/sarkozy.webp",
+	//"fillon": "img/fillon.webp",
+	//"valls": "img/valls.webp",
+	//"hidalgo": "img/hidalgo.webp",
+}
+
 
 export class Player {
 	id;
@@ -16,6 +35,7 @@ export class Player {
 	ready;
 	deg;
 	keyPressed;
+	color;
 
 	constructor(name, x, y, id) {
 		this.name = name;
@@ -31,6 +51,11 @@ export class Player {
 		this.keyPressed = [];
 		this.deg = Math.random() * 2 * Math.PI;
 		this.targetDeg = this.deg;
+		this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+		this.image = null;
+		if (ImageMap.hasOwnProperty(name)) {
+			this.image = ImageMap[name];
+		}
 	}
 
 	increaseSize(amount) {

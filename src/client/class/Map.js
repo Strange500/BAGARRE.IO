@@ -66,13 +66,19 @@ export class GameMap {
         const playerIsYVisible = (player.y - player.size < maxY) && (player.y + player.size > minY);
 
         if (playerIsXVisible && playerIsYVisible) {
-
-
             context.beginPath();
+            //
+
             context.arc(player.x, player.y, player.size, 0, 2 * Math.PI);
-            context.fillStyle = 'red';
-            context.fill();
-            context.strokeStyle = 'green';
+            context.fillStyle = player.color;
+            if (player.image) {
+                const image = new Image();
+                image.src = player.image;
+                context.drawImage(image, player.x - player.size, player.y - player.size, player.size * 2, player.size * 2);
+            } else {
+                context.fill();
+            }
+            context.strokeStyle = 'black';
             context.stroke();
             context.beginPath();
             return true;
