@@ -219,6 +219,7 @@ export class Hub {
                 if (!nearest) return;
                 const distance = Math.hypot(nearest.x - player.x, nearest.y - player.y);
                 if (nearest && distance < player.size) {
+                    this.addFood();
                     console.log(`Player ${player.name} ate food`);
                     this.food.remove(nearest);
                     player.addFood(nearest.bonus);
@@ -290,6 +291,7 @@ export class Hub {
                 if (nearest.nearest && nearest.distance < bot.size) {
                     console.log(`Bot ${bot.name} ate food`);
                     this.food.remove(nearest.nearest);
+                    this.addFood();
                     bot.addFood(nearest.nearest.bonus);
                     this._sendToRoom('food:ate', {
                         food: nearest.nearest,
@@ -352,5 +354,11 @@ export class Hub {
         this.players = [];
         this.bots = [];
         this.map = null;
+    }
+
+    addFood() {
+        const f = this._genRandomFood();
+        this.food.insert(f);
+        this._sendToRoom("food:spawn", f);
     }
 }

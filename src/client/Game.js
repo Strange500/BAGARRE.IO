@@ -221,6 +221,13 @@ function launchClientGame() {
 		}
 	});
 
+	socket.on("food:spawn", (content)=> {
+		const bonus = content.bonus;
+		const x = content.x;
+		const y = content.y;
+		foodQuadTree.insert(new Food(bonus, x, y))
+	})
+
 	socket.on('game:end', (id) => {
 		console.log('Game ended');
 		clearInterval(scInter);
@@ -348,7 +355,6 @@ function handleKill(p, players) {
 		const distanceToPlayer = Math.hypot(deltaXPlayer, deltaYPlayer);
 
 		if (p.size > other.size && distanceToPlayer < p.size) {
-			p.addKill(other.size);
 			socket.emit('player:kill', {
 				playerId: p.id,
 				targetId: other.id,
