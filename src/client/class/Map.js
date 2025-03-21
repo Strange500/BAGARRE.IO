@@ -1,4 +1,8 @@
 import {Rectangle} from "@timohausmann/quadtree-ts";
+// link url to Image Html
+const imageMap = {
+
+}
 
 export class GameMap {
     width;
@@ -72,9 +76,11 @@ export class GameMap {
             context.arc(player.x, player.y, player.size, 0, 2 * Math.PI);
             context.fillStyle = player.color;
             if (player.image) {
-                const image = new Image();
-                image.src = player.image;
-                context.drawImage(image, player.x - player.size, player.y - player.size, player.size * 2, player.size * 2);
+                if (!imageMap.hasOwnProperty(player.image)) {
+                    imageMap[player.image] = new Image();
+                    imageMap[player.image].src = player.image;
+                }
+                context.drawImage(imageMap[player.image], player.x - player.size, player.y - player.size, player.size * 2, player.size * 2);
             } else {
                 context.fill();
             }
