@@ -115,6 +115,22 @@ h1 em {
     text-align: left;
     font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
     width: 200px;
+
+}
+#colorChooser {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 8px;
+    padding: 2px;
+    font-size: 14px;
+    text-align: left;
+    font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
 }
 
 .playersheet table {

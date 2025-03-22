@@ -2,7 +2,7 @@ import { BonusType } from './Bonus.js';
 import { Score } from './Score.js';
 
 export const START_SIZE = 20;
-const COLORS = ['red', 'black', 'white', 'green', 'yellow', 'pink'];
+export const COLORS = ["red", "black", "white", "green", "yellow", "pink"];
 const ImageMap = {
 	doge: 'img/doge.webp',
 	trump: 'img/trump.webp',

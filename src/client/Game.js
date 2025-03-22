@@ -1,4 +1,4 @@
-import { Player } from './class/Player.js';
+import { COLORS, Player } from './class/Player.js';
 import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
 import {
@@ -75,12 +75,78 @@ function requestRoomChoices(socket) {
 	});
 }
 
-function showSpectator() {
+let chooseColor = "red";
+
+function showSpectatorBadge() {
 	document.querySelector('#spectator').style.display = 'block';
 }
 
-function hideSpectator() {
+function addImageSelector() {
+	const fileInput = document.createElement('input');
+	fileInput.type = 'file';
+	fileInput.accept = 'image/*';
+	fileInput.onchange = (event) => {
+		event.preventDefault();
+		const file = event.target.files[0];
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			// emit as imaage in base64
+			socket.emit('init:customImage', e.target.result);
+		};
+		reader.readAsDataURL(file);
+	};
+	return fileInput;
+}
+
+function showColorSelector() {
+	const colorChooser = document.querySelector('#colorChooser');
+	COLORS.forEach(color => {
+		const sec = document.createElement('section');
+		sec.style.backgroundColor = color;
+		sec.style.width = '50px';
+		sec.style.height = '50px';
+		sec.style.border = '1px solid black';
+		sec.style.display = 'inline-block';
+		sec.style.cursor = 'pointer';
+		sec.onclick = () => {
+			const secs = colorChooser.querySelectorAll('section');
+			secs.forEach(s => s.style.border = '1px solid black');
+			sec.style.border = '3px solid white';
+			chooseColor = color;
+		};
+		colorChooser.appendChild(sec);
+	});
+	// add a file input for a custom image
+	const fileInput = addImageSelector();
+	fileInput.style.display = 'none';
+	fileInput.id = 'fileInput';
+	const label = document.createElement('label');
+	label.htmlFor = 'fileInput';
+	label.textContent = 'Upload an Image';
+	label.style.display = 'block';
+	colorChooser.appendChild(fileInput);
+	colorChooser.appendChild(label);
+}
+
+function showMenu() {
+	showSpectatorBadge();
+	showColorSelector();
+
+}
+
+function hideSpectatorBadge() {
 	document.querySelector('#spectator').style.display = 'none';
+}
+
+function hideColorSelector() {
+	const colorChooser = document.querySelector('#colorChooser');
+	colorChooser.innerHTML = '';
+	colorChooser.style.display = 'none';
+}
+
+function hideMenu() {
+	hideSpectatorBadge();
+	hideColorSelector();
 }
 
 function setupUser(socket) {
@@ -143,17 +209,20 @@ function setupUser(socket) {
 			addUser(newPlayer);
 		});
 
-		socket.emit('init:receivedPlayers');
+			socket.emit('init:receivedPlayers');
 
 		player =
 			players.length > 0
 				? players[Math.floor(Math.random() * players.length)]
 				: new Player('Anonymous', map.width / 2, map.height / 2, 2937);
-		showSpectator();
+		showMenu();
 		launchClientGame(socket);
 		setTimeout(() => {
 			const usrname = prompt('Enter your username: ');
-			socket.emit('init:name', usrname || 'Anonymous');
+			socket.emit('init:player', {
+					name: usrname || 'Anonymous',
+					color: chooseColor,
+			});
 			socket.on('you:player', content => {
 				player = new Player(content.name, content.x, content.y, content.id);
 				player.image = content.image;
@@ -165,15 +234,15 @@ function setupUser(socket) {
 				players.push(player);
 			});
 			socket.emit('init:go');
-		}, 1000);
+		}, 10000);
 
-		//socket.emit('init:go');
-		console.log('Game is ready');
-		socket.on('game:start', () => {
-			updInter = setInterval(updateGame, 1000 / 60);
-			hideSpectator();
-			console.log('Game started');
-		});
+			//socket.emit('init:go');
+			console.log('Game is ready');
+			socket.on('game:start', () => {
+				updInter = setInterval(updateGame, 1000 / 60);
+				hideMenu();
+				console.log('Game started');
+			});
 	});
 }
 let stop = false;
@@ -223,7 +292,7 @@ function launchClientGame() {
 		}
 	});
 
-	socket.on('room:replaceBot', content => {
+	socket.on('room:replaceBot', (content) => {
 		const botid = content.botId;
 		const newPlayer = content.player;
 		const bot = players.find(p => p.id === botid);
@@ -311,7 +380,7 @@ function computeFps() {
 function calculateZoomLevel(size) {
 	for (let i = 0; i < ZOOM_LEVEL_THRESHOLDS.length; i++) {
 		if (size < ZOOM_LEVEL_THRESHOLDS[i]) {
-			return 1 - i * 0.1;
+			return 1 - (i * 0.1);
 		}
 	}
 	return 0.6;
@@ -343,8 +412,8 @@ function render() {
 	context.clearRect(0, 0, canvas.width, canvas.height);
 	context.scale(zoomLevel, zoomLevel);
 
-	const offsetX = -player.x + canvas.width / (2 * zoomLevel);
-	const offsetY = -player.y + canvas.height / (2 * zoomLevel);
+	const offsetX = (-(player.x) + (canvas.width / (2 * zoomLevel)));
+	const offsetY = (-(player.y) + (canvas.height / (2 * zoomLevel)));
 	context.translate(offsetX, offsetY);
 
 	// Draw map and entities
@@ -388,9 +457,9 @@ function zoomOut() {
 	zoomLevel = Math.max(zoomLevel - zoomStep, 0.5); // Limit minimum zoom
 }
 
-document.addEventListener('wheel', event => {
+document.addEventListener('wheel', (event) => {
 	zoomViaScroll = true;
-	event.deltaY > 0 ? zoomOut() : zoomIn(); // Zoom in/out based on scroll direction
+	(event.deltaY > 0) ? zoomOut() : zoomIn(); // Zoom in/out based on scroll direction
 });
 
 function handleBonus(p) {
@@ -450,3 +519,4 @@ setInterval(() => {
 	}
 	soundManager.forceThemeStart();
 }, 1000);
+

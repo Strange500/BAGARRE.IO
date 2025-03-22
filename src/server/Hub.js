@@ -5,7 +5,7 @@ import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
 import { movePlayer } from './movement.js';
-
+import fs from 'fs';
 const FOOD_BATCH = 100;
 let foodRemoveCpt = 0;
 
@@ -41,6 +41,22 @@ export class Hub {
         this.maxFoodBonus = MaxFoodBonus;
         this.foodCpt = 0;
         this.initializeFood();
+    }
+
+    _saveTempImage(image) {
+        // received image is a base64 string
+        const acceptedFormats = ['png', 'jpeg', 'jpg', 'webp'];
+        if (!fs.existsSync('./public/img/temp')) {
+            fs.mkdirSync('./public/img/temp');
+        }
+        const currentFormat = image.substring(11, image.indexOf(';'));
+        if (!acceptedFormats.includes(currentFormat)) {
+            return null;
+        }
+        const path = `./public/img/temp/${Date.now()}.${currentFormat}`;
+        const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+        fs.writeFileSync(path, base64Data, 'base64');
+        return path.substring(8);
     }
 
     _genRandomFood() {
@@ -114,9 +130,13 @@ export class Hub {
                 socket.emit('room:players', this.players);
                 socket.on('init:receivedPlayers', () => {
                     console.log('Players received');
-                    socket.on('init:name', (playerName) => {
-                        this.addPlayer(socket, playerName);
-                        socket.emit("you:player", this.players.find(p => p.id === socket.id));
+                    let customImage = null;
+                    socket.on('init:customImage', (image) => {
+                        customImage =  this._saveTempImage(image);
+                    })
+                    socket.on('init:player', (content) => {
+                        this.addPlayer(socket, content.name, content.color, customImage);
+                        socket.emit("you:player",this.players.find(p => p.id === socket.id));
                         socket.on('init:go', () => {
                             console.log('Player is ready');
                             const player = this.players.find(p => p.id === socket.id);
@@ -152,7 +172,7 @@ export class Hub {
         return this.bots.length > 0;
     }
 
-    addPlayer(socket, playerName) {
+    addPlayer(socket, playerName, color, image) {
         const replaceBot = this._canReplaceABot();
         if (this.players.length < this.maxPlayers || replaceBot) {
             const player = new Player(
@@ -161,6 +181,12 @@ export class Hub {
               Math.random() * this.map.height,
               socket.id
             );
+            if (color) {
+                player.color = color;
+            }
+            if (image) {
+                player.image = image;
+            }
             if (replaceBot) {
                 player.ready = true;
                 const bot = this.bots.pop();

@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import http from 'http';
 import { Hub } from './Hub.js';
+import fs from 'fs';
 
 const port = 3000;
 const hubs = {}; // Object for managing hubs
@@ -82,6 +83,25 @@ function handleDisconnect(socket) {
 		}
 	}
 }
+
+function emptyTempFolder() {
+	const dir = './public/img/temp';
+	fs.readdir(dir, (err, files) => {
+		if (err) {
+			console.error('Could not list the directory.', err);
+			return;
+		}
+		files.forEach((file) => {
+			fs.unlink(`${dir}/${file}`, (err) => {
+				if (err) {
+					console.error(`Could not delete file ${file}.`, err);
+				}
+			});
+		});
+
+	});
+}
+emptyTempFolder();
 
 // create a main hub
 hubs['main'] = new Hub({ maxSizeX: 10000, maxSizeY: 10000 }, io, 'main', 30, 5000, 10);
