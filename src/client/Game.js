@@ -81,6 +81,23 @@ function showSpectatorBadge() {
 	document.querySelector('#spectator').style.display = 'block';
 }
 
+function addImageSelector() {
+	const fileInput = document.createElement('input');
+	fileInput.type = 'file';
+	fileInput.accept = 'image/*';
+	fileInput.onchange = (event) => {
+		event.preventDefault();
+		const file = event.target.files[0];
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			// emit as imaage in base64
+			socket.emit('init:customImage', e.target.result);
+		};
+		reader.readAsDataURL(file);
+	};
+	return fileInput;
+}
+
 function showColorSelector() {
 	const colorChooser = document.querySelector('#colorChooser');
 	COLORS.forEach(color => {
@@ -99,6 +116,16 @@ function showColorSelector() {
 		};
 		colorChooser.appendChild(sec);
 	});
+	// add a file input for a custom image
+	const fileInput = addImageSelector();
+	fileInput.style.display = 'none';
+	fileInput.id = 'fileInput';
+	const label = document.createElement('label');
+	label.htmlFor = 'fileInput';
+	label.textContent = 'Upload an Image';
+	label.style.display = 'block';
+	colorChooser.appendChild(fileInput);
+	colorChooser.appendChild(label);
 }
 
 function showMenu() {
@@ -200,7 +227,7 @@ function setupUser(socket) {
 					players.push(player);
 				});
 				socket.emit("init:go");
-			}, 5000);
+			}, 10000);
 
 
 
