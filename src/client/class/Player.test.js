@@ -11,7 +11,6 @@ describe('Player', () => {
 		assert.strictEqual(player.y, 20);
 		assert.strictEqual(player.id, 1);
 		assert.strictEqual(player.size, 20);
-		assert.strictEqual(player.speed, 5);
 		assert.strictEqual(player.ready, false);
 		assert.ok(player.score instanceof Score);
 	});

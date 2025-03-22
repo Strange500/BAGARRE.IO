@@ -12,7 +12,7 @@ export class Bot extends Player{
         this.y = y;
     }
 
-    nextMove(foodQuadTree, players) {
+    nextMove(foodManager, players) {
             let deltaXNearestPlayer = 0;
             let deltaYNearestPlayer = 0;
             let distanceToNearestPlayer = Infinity;
@@ -49,14 +49,14 @@ export class Bot extends Player{
                 let deltaXFood = 0;
                 let deltaYFood = 0;
                 let distance = Infinity;
-                const nearestFoods = foodQuadTree.retrieve(
+                const nearestFoods = foodManager.getFoodForRectangle(
                     new Rectangle({
                         x: this.x - viewLength,
                         y: this.y - viewHeight,
                         width: viewLength * 2,
                         height: viewHeight * 2
                     })
-                )
+                );
                 nearestFoods.forEach(food => {
                     const deltaX = food.x - this.x;
                     const deltaY = food.y - this.y;
