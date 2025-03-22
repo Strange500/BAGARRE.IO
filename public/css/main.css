@@ -89,6 +89,20 @@ h1 em {
     font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
 }
 
+
+#spectator {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
+}
+
 .playersheet {
     position: absolute;
     top: 20px;

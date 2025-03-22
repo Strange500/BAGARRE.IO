@@ -74,6 +74,15 @@ function requestRoomChoices(socket) {
 		});
 	});
 }
+
+function showSpectator() {
+	document.querySelector('#spectator').style.display = 'block';
+}
+
+function hideSpectator() {
+	document.querySelector('#spectator').style.display = 'none';
+}
+
 function setupUser(socket) {
 	socket.emit('init:ready');
 	function addUser(newPlayer) {
@@ -90,11 +99,13 @@ function setupUser(socket) {
 			);
 			player.image = newPlayer.image;
 			player.color = newPlayer.color;
+			player.size = newPlayer.size;
 			players.push(player);
 		} else {
 			const p = new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id);
 			p.image = newPlayer.image;
 			p.color = newPlayer.color;
+			p.size = newPlayer.size;
 			players.push(p);
 		}
 	}
@@ -130,7 +141,8 @@ function setupUser(socket) {
 
 			socket.emit('init:receivedPlayers');
 
-			player = new Player('Anonymous', map.width / 2, map.height / 2, 123);
+			player = players.length > 0 ? players[Math.floor(Math.random() * players.length)] : new Player('Anonymous', map.width / 2, map.height / 2, 2937);
+			showSpectator();
 			launchClientGame(socket);
 			setTimeout(() => {
 			 	const usrname = prompt('Enter your username: ');
@@ -139,13 +151,14 @@ function setupUser(socket) {
 					player = new Player(content.name, content.x, content.y, content.id);
 					player.image = content.image;
 					player.color = content.color;
+					player.size = content.size;
 					if (players.some(p => p.id === player.id)) {
 						return;
 					}
 					players.push(player);
 				});
 				socket.emit("init:go");
-			}, 15000);
+			}, 1000);
 
 
 
@@ -153,7 +166,7 @@ function setupUser(socket) {
 			console.log('Game is ready');
 			socket.on('game:start', () => {
 				updInter = setInterval(updateGame, 1000 / 60);
-
+				hideSpectator();
 				console.log('Game started');
 			});
 	});
@@ -215,6 +228,7 @@ function launchClientGame() {
 			const p  = new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id);
 			p.image = newPlayer.image;
 			p.color = newPlayer.color;
+			p.size = newPlayer.size;
 			players.push();
 		}
 	})
