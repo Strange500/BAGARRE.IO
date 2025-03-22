@@ -1,4 +1,4 @@
-import { Player } from './class/Player.js';
+import { COLORS, Player } from './class/Player.js';
 import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
 import {
@@ -75,12 +75,51 @@ function requestRoomChoices(socket) {
 	});
 }
 
-function showSpectator() {
+let chooseColor = "red";
+
+function showSpectatorBadge() {
 	document.querySelector('#spectator').style.display = 'block';
 }
 
-function hideSpectator() {
+function showColorSelector() {
+	const colorChooser = document.querySelector('#colorChooser');
+	COLORS.forEach(color => {
+		const sec = document.createElement('section');
+		sec.style.backgroundColor = color;
+		sec.style.width = '50px';
+		sec.style.height = '50px';
+		sec.style.border = '1px solid black';
+		sec.style.display = 'inline-block';
+		sec.style.cursor = 'pointer';
+		sec.onclick = () => {
+			const secs = colorChooser.querySelectorAll('section');
+			secs.forEach(s => s.style.border = '1px solid black');
+			sec.style.border = '3px solid white';
+			chooseColor = color;
+		};
+		colorChooser.appendChild(sec);
+	});
+}
+
+function showMenu() {
+	showSpectatorBadge();
+	showColorSelector();
+
+}
+
+function hideSpectatorBadge() {
 	document.querySelector('#spectator').style.display = 'none';
+}
+
+function hideColorSelector() {
+	const colorChooser = document.querySelector('#colorChooser');
+	colorChooser.innerHTML = '';
+	colorChooser.style.display = 'none';
+}
+
+function hideMenu() {
+	hideSpectatorBadge();
+	hideColorSelector();
 }
 
 function setupUser(socket) {
@@ -142,11 +181,14 @@ function setupUser(socket) {
 			socket.emit('init:receivedPlayers');
 
 			player = players.length > 0 ? players[Math.floor(Math.random() * players.length)] : new Player('Anonymous', map.width / 2, map.height / 2, 2937);
-			showSpectator();
+			showMenu();
 			launchClientGame(socket);
 			setTimeout(() => {
 			 	const usrname = prompt('Enter your username: ');
-				socket.emit('init:name', usrname || 'Anonymous');
+				socket.emit('init:player', {
+					name: usrname || 'Anonymous',
+					color: chooseColor,
+			});
 				socket.on("you:player", (content) => {
 					player = new Player(content.name, content.x, content.y, content.id);
 					player.image = content.image;
@@ -158,7 +200,7 @@ function setupUser(socket) {
 					players.push(player);
 				});
 				socket.emit("init:go");
-			}, 1000);
+			}, 5000);
 
 
 
@@ -166,7 +208,7 @@ function setupUser(socket) {
 			console.log('Game is ready');
 			socket.on('game:start', () => {
 				updInter = setInterval(updateGame, 1000 / 60);
-				hideSpectator();
+				hideMenu();
 				console.log('Game started');
 			});
 	});

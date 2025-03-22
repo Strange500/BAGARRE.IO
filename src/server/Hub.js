@@ -114,9 +114,9 @@ export class Hub {
                 socket.emit('room:players', this.players);
                 socket.on('init:receivedPlayers', () => {
                     console.log('Players received');
-                    socket.on('init:name', (playerName) => {
-                        this.addPlayer(socket, playerName);
-                        socket.emit("you:player", this.players.find(p => p.id === socket.id));
+                    socket.on('init:player', (content) => {
+                        this.addPlayer(socket, content.name, content.color);
+                        socket.emit("you:player",this.players.find(p => p.id === socket.id));
                         socket.on('init:go', () => {
                             console.log('Player is ready');
                             const player = this.players.find(p => p.id === socket.id);
@@ -152,7 +152,7 @@ export class Hub {
         return this.bots.length > 0;
     }
 
-    addPlayer(socket, playerName) {
+    addPlayer(socket, playerName, color) {
         const replaceBot = this._canReplaceABot();
         if (this.players.length < this.maxPlayers || replaceBot) {
             const player = new Player(
@@ -161,6 +161,9 @@ export class Hub {
               Math.random() * this.map.height,
               socket.id
             );
+            if (color) {
+                player.color = color;
+            }
             if (replaceBot) {
                 player.ready = true;
                 const bot = this.bots.pop();
