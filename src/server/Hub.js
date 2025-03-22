@@ -283,7 +283,7 @@ export class Hub {
             const player = this.players.find(p => p.id === content.playerId);
             if (player) {
                 const target = this.players.find(p => p.id === content.targetId);
-                if (target) {
+                if (target && !player.invincible) {
                     console.log(`Player ${player.name} might have killed ${target.name}`);
                     const distance = Math.hypot(target.x - player.x, target.y - player.y);
                     if (distance > player.size) return;
@@ -295,6 +295,22 @@ export class Hub {
                         targetId: target.id
                     });
                 }
+            }
+        });
+
+        socket.on('invincibility:start', (playerId) => {
+            const player = this.players.find(p => p.id === playerId);
+            if (player) {
+                player.invincible = true;
+                this._sendToRoom('invincibility:start', playerId);
+            }
+        });
+
+        socket.on('invincibility:end', (playerId) => {
+            const player = this.players.find(p => p.id === playerId);
+            if (player) {
+                player.invincible = false;
+                this._sendToRoom('invincibility:end', playerId);
             }
         });
 
@@ -342,7 +358,7 @@ export class Hub {
                 this.players.forEach(player => {
                     if (player.id === bot.id || player.size === START_SIZE) return;
                     const distance = Math.hypot(player.x - bot.x, player.y - bot.y);
-                    if (distance < player.size && bot.size > player.size) {
+                    if (distance < player.size && bot.size > player.size && !player.invincible) {
                         console.log(`Bot ${bot.name} killed ${player.name}`);
                         bot.addKill(player.size);
                         this.players.splice(this.players.indexOf(player), 1);

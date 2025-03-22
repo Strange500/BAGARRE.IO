@@ -13,7 +13,7 @@ import { io } from 'socket.io-client';
 import { updatePlayerSheet } from './class/Player.js';
 import { showBonus } from './handlers/BonusHandler.js';
 import { movePlayer } from '../server/movement.js';
-import { soundManager } from './handlers/SoundHandler';
+import { soundManager } from './handlers/SoundHandler.js';
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -345,6 +345,25 @@ function launchClientGame() {
 		}
 	});
 
+	socket.on('invincibility:start', id => {
+		const p = players.find(p => p.id === id);
+		if (p) {
+			p.invincibility = true;
+			if (!p.oldImg) {
+				p.oldImg = p.image;
+			}
+			p.image = '/img/invincible.webp';
+		}
+	});
+
+	socket.on('invincibility:end', id => {
+		const p = players.find(p => p.id === id);
+		if (p) {
+			p.invincibility = false;
+			p.image = p.oldImg;
+		}
+	});
+
 	socket.on('game:end', id => {
 		console.log('Game ended');
 		clearInterval(scInter);
@@ -361,7 +380,7 @@ function launchClientGame() {
 	socket.on('player:bonus', content => {
 		soundManager.playBonusSound();
 		const listBonus = content;
-		showBonus(listBonus, player);
+		showBonus(listBonus, player, socket);
 	});
 }
 

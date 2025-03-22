@@ -15,7 +15,7 @@ export const RandomBonus = () => {
 	return theBonus;
 };
 
-export function showBonus(bonusList, player) {
+export function showBonus(bonusList, player, socket) {
 	const container = document.querySelector('.BonusList');
 
 	if (!container) return;
@@ -39,7 +39,7 @@ export function showBonus(bonusList, player) {
 		container.appendChild(bonusItem);
 
 		bonusItem.addEventListener('click', () => {
-			applyBonusEffect(bonus, player);
+			applyBonusEffect(bonus, player, socket);
 			container.style.display = 'none';
 			container.innerHTML = '';
 		});
