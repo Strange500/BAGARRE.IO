@@ -3,17 +3,17 @@ import { GameMap } from './class/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
 import {
 	computeTargetAngle,
-	handleKeyDown, handleKeyUp,
+	handleKeyDown,
+	handleKeyUp,
 	handleMouseDirection,
 } from './handlers/MovementPlayerHandler.js';
 import { Food } from './class/Food.js';
 import { Circle, Quadtree } from '@timohausmann/quadtree-ts';
 import { io } from 'socket.io-client';
-import { updatePlayerSheet } from '../server/pHandler.js';
+import { updatePlayerSheet } from './class/Player.js';
 import { showBonus } from './handlers/BonusHandler.js';
 import { movePlayer } from '../server/movement.js';
 import { soundManager } from './handlers/SoundHandler';
-
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -102,7 +102,12 @@ function setupUser(socket) {
 			player.size = newPlayer.size;
 			players.push(player);
 		} else {
-			const p = new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id);
+			const p = new Player(
+				newPlayer.name,
+				newPlayer.x,
+				newPlayer.y,
+				newPlayer.id
+			);
 			p.image = newPlayer.image;
 			p.color = newPlayer.color;
 			p.size = newPlayer.size;
@@ -127,7 +132,6 @@ function setupUser(socket) {
 			});
 			socket.emit('init:foodReceived');
 			console.log('Food received');
-
 		});
 	});
 	socket.on('room:players', newPlayers => {
@@ -139,36 +143,37 @@ function setupUser(socket) {
 			addUser(newPlayer);
 		});
 
-			socket.emit('init:receivedPlayers');
+		socket.emit('init:receivedPlayers');
 
-			player = players.length > 0 ? players[Math.floor(Math.random() * players.length)] : new Player('Anonymous', map.width / 2, map.height / 2, 2937);
-			showSpectator();
-			launchClientGame(socket);
-			setTimeout(() => {
-			 	const usrname = prompt('Enter your username: ');
-				socket.emit('init:name', usrname || 'Anonymous');
-				socket.on("you:player", (content) => {
-					player = new Player(content.name, content.x, content.y, content.id);
-					player.image = content.image;
-					player.color = content.color;
-					player.size = content.size;
-					if (players.some(p => p.id === player.id)) {
-						return;
-					}
-					players.push(player);
-				});
-				socket.emit("init:go");
-			}, 1000);
-
-
-
-			//socket.emit('init:go');
-			console.log('Game is ready');
-			socket.on('game:start', () => {
-				updInter = setInterval(updateGame, 1000 / 60);
-				hideSpectator();
-				console.log('Game started');
+		player =
+			players.length > 0
+				? players[Math.floor(Math.random() * players.length)]
+				: new Player('Anonymous', map.width / 2, map.height / 2, 2937);
+		showSpectator();
+		launchClientGame(socket);
+		setTimeout(() => {
+			const usrname = prompt('Enter your username: ');
+			socket.emit('init:name', usrname || 'Anonymous');
+			socket.on('you:player', content => {
+				player = new Player(content.name, content.x, content.y, content.id);
+				player.image = content.image;
+				player.color = content.color;
+				player.size = content.size;
+				if (players.some(p => p.id === player.id)) {
+					return;
+				}
+				players.push(player);
 			});
+			socket.emit('init:go');
+		}, 1000);
+
+		//socket.emit('init:go');
+		console.log('Game is ready');
+		socket.on('game:start', () => {
+			updInter = setInterval(updateGame, 1000 / 60);
+			hideSpectator();
+			console.log('Game started');
+		});
 	});
 }
 let stop = false;
@@ -179,7 +184,7 @@ function launchClientGame() {
 	const scInter = setInterval(() => {
 		simulateScores(players);
 		updateScoreboard(players);
-		socket.emit('ping', '')
+		socket.emit('ping', '');
 		startPing = performance.now();
 		socket.on('pong', () => {
 			// round to 3 decimal
@@ -215,23 +220,27 @@ function launchClientGame() {
 			if (res) {
 				socket.emit('level:up', '');
 			}
-
 		}
 	});
 
-	socket.on('room:replaceBot', (content) => {
+	socket.on('room:replaceBot', content => {
 		const botid = content.botId;
 		const newPlayer = content.player;
 		const bot = players.find(p => p.id === botid);
 		if (bot) {
 			players.splice(players.indexOf(bot), 1);
-			const p  = new Player(newPlayer.name, newPlayer.x, newPlayer.y, newPlayer.id);
+			const p = new Player(
+				newPlayer.name,
+				newPlayer.x,
+				newPlayer.y,
+				newPlayer.id
+			);
 			p.image = newPlayer.image;
 			p.color = newPlayer.color;
 			p.size = newPlayer.size;
 			players.push();
 		}
-	})
+	});
 
 	socket.on('player:moved', content => {
 		const p = players.find(p => p.id === content.playerId);
@@ -258,40 +267,38 @@ function launchClientGame() {
 		}
 	});
 
-	socket.on("food:spawn", (content)=> {
+	socket.on('food:spawn', content => {
 		for (let i = 1; i < content.length; i++) {
 			const bonus = content[i].bonus;
 			const x = content[i].x;
 			const y = content[i].y;
-			foodQuadTree.insert(new Food(bonus, x, y))
+			foodQuadTree.insert(new Food(bonus, x, y));
 		}
-	})
+	});
 
-	socket.on('game:end', (id) => {
+	socket.on('game:end', id => {
 		console.log('Game ended');
 		clearInterval(scInter);
 		clearInterval(updInter);
 		stop = true;
-		soundManager.stopTheme()
+		soundManager.stopTheme();
 		if (id === player.id) {
-			soundManager.playVictoryTheme()
+			soundManager.playVictoryTheme();
 		} else {
-			soundManager.playLoseTheme()
+			soundManager.playLoseTheme();
 		}
-
 	});
 
 	socket.on('player:bonus', content => {
 		soundManager.playBonusSound();
 		const listBonus = content;
-		showBonus(listBonus);
+		showBonus(listBonus, player);
 	});
 }
 
 const times = [];
 let fps = 0;
 let zoomViaScroll = false;
-
 
 function computeFps() {
 	const now = performance.now();
@@ -304,7 +311,7 @@ function computeFps() {
 function calculateZoomLevel(size) {
 	for (let i = 0; i < ZOOM_LEVEL_THRESHOLDS.length; i++) {
 		if (size < ZOOM_LEVEL_THRESHOLDS[i]) {
-			return 1 - (i * 0.1);
+			return 1 - i * 0.1;
 		}
 	}
 	return 0.6;
@@ -312,7 +319,6 @@ function calculateZoomLevel(size) {
 
 let zoomLevel = 1; // Initial zoom level
 const zoomStep = 0.1; // How much to zoom in/out each time
-
 
 function drawGameOverScreen() {
 	context.font = `${FONT_SIZE} ${FONT_FAMILY}`;
@@ -337,16 +343,35 @@ function render() {
 	context.clearRect(0, 0, canvas.width, canvas.height);
 	context.scale(zoomLevel, zoomLevel);
 
-	const offsetX = (-(player.x) + (canvas.width / (2 * zoomLevel)));
-	const offsetY = (-(player.y) + (canvas.height / (2 * zoomLevel)));
+	const offsetX = -player.x + canvas.width / (2 * zoomLevel);
+	const offsetY = -player.y + canvas.height / (2 * zoomLevel);
 	context.translate(offsetX, offsetY);
 
 	// Draw map and entities
-	map.drawDecor(context, player, canvas.width / (2 * zoomLevel) + player.size, canvas.height / (2 * zoomLevel) + player.size);
-	map.drawFood(context, foodQuadTree, player, canvas.width / (2 * zoomLevel), canvas.height / (2 * zoomLevel));
+	map.drawDecor(
+		context,
+		player,
+		canvas.width / (2 * zoomLevel) + player.size,
+		canvas.height / (2 * zoomLevel) + player.size
+	);
+	map.drawFood(
+		context,
+		foodQuadTree,
+		player,
+		canvas.width / (2 * zoomLevel),
+		canvas.height / (2 * zoomLevel)
+	);
 
 	players.forEach(p => {
-		if (map.drawPlayer(context, p, player, canvas.width / (2 * zoomLevel), canvas.height / (2 * zoomLevel))) {
+		if (
+			map.drawPlayer(
+				context,
+				p,
+				player,
+				canvas.width / (2 * zoomLevel),
+				canvas.height / (2 * zoomLevel)
+			)
+		) {
 			map.drawName(context, p);
 		}
 	});
@@ -363,9 +388,9 @@ function zoomOut() {
 	zoomLevel = Math.max(zoomLevel - zoomStep, 0.5); // Limit minimum zoom
 }
 
-document.addEventListener('wheel', (event) => {
+document.addEventListener('wheel', event => {
 	zoomViaScroll = true;
-	(event.deltaY > 0) ? zoomOut() : zoomIn(); // Zoom in/out based on scroll direction
+	event.deltaY > 0 ? zoomOut() : zoomIn(); // Zoom in/out based on scroll direction
 });
 
 function handleBonus(p) {
@@ -387,7 +412,7 @@ function handleBonus(p) {
 function handleKill(p, players) {
 	for (let i = 0; i < players.length; i++) {
 		const other = players[i];
-		if (other === p) continue;
+		if (other === p || other.invincibility) continue;
 
 		const deltaXPlayer = other.x - p.x;
 		const deltaYPlayer = other.y - p.y;
@@ -417,7 +442,7 @@ function updateGame() {
 
 document.addEventListener('mousemove', handleMouseDirection);
 document.addEventListener('keydown', handleKeyDown);
-document.addEventListener('keyup', handleKeyUp	);
+document.addEventListener('keyup', handleKeyUp);
 
 setInterval(() => {
 	if (player) {
@@ -425,5 +450,3 @@ setInterval(() => {
 	}
 	soundManager.forceThemeStart();
 }, 1000);
-
-
