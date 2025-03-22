@@ -20,7 +20,7 @@ export function movePlayer(player, map) {
 	// reduce speed when player get bigger
 	const decayFactor = 0.99;
 	const speedFactor = Math.max(0.1,Math.pow(decayFactor, (player.size - START_SIZE)));
-	const speed = player.speed * speedFactor;
+	const speed = player.speed * speedFactor * player.speedMultiplier;
 	player.velocityX = Math.cos(player.deg) * speed;
 	player.velocityY = Math.sin(player.deg) * speed;
 
