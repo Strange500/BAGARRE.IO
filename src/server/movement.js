@@ -1,3 +1,5 @@
+import { START_SIZE } from '../client/class/Player.js';
+
 const INERTIA = 0.07;
 export const MAX_SPEED = 5;
 export const SPEED_LEVEL = 0.1;
@@ -15,9 +17,12 @@ export function movePlayer(player, map) {
 	}
 
 	player.deg = (player.deg + 2 * Math.PI) % (2 * Math.PI);
-
-	player.velocityX = Math.cos(player.deg) * player.speed;
-	player.velocityY = Math.sin(player.deg) * player.speed;
+	// reduce speed when player get bigger
+	const decayFactor = 0.99;
+	const speedFactor = Math.max(0.1,Math.pow(decayFactor, (player.size - START_SIZE)));
+	const speed = player.speed * speedFactor;
+	player.velocityX = Math.cos(player.deg) * speed;
+	player.velocityY = Math.sin(player.deg) * speed;
 
 	const newX = player.x + player.velocityX;
 	const newY = player.y + player.velocityY;
