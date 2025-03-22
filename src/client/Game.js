@@ -8,12 +8,12 @@ import {
 	handleMouseDirection,
 } from './handlers/MovementPlayerHandler.js';
 import { Food } from './class/Food.js';
-import { Circle, Quadtree } from '@timohausmann/quadtree-ts';
 import { io } from 'socket.io-client';
 import { updatePlayerSheet } from './class/Player.js';
 import { showBonus } from './handlers/BonusHandler.js';
 import { movePlayer } from '../server/movement.js';
 import { soundManager } from './handlers/SoundHandler.js';
+import { FoodManager } from '../utils/FoodManager.js';
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -22,7 +22,7 @@ const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 
 const players = [];
-let foodQuadTree;
+let foodManager;
 let map;
 let updInter;
 
@@ -189,12 +189,9 @@ function setupUser(socket) {
 		socket.emit('init:mapReceived');
 		console.log('Map received');
 		socket.on('init:food', food => {
-			foodQuadTree = new Quadtree({
-				width: map.width,
-				height: map.height,
-			});
+			foodManager = new FoodManager(map.width, map.height, -1, -1);
 			food.forEach(f => {
-				foodQuadTree.insert(new Food(f.bonus, f.x, f.y));
+				foodManager.forceAddFood(new Food(f.bonus, f.x, f.y));
 			});
 			socket.emit('init:foodReceived');
 			console.log('Food received');
@@ -263,25 +260,13 @@ function launchClientGame() {
 	}, 1000);
 
 	requestAnimationFrame(render);
-	let foodRemoveCpt = 0;
 
 	socket.on('food:ate', data => {
-		foodRemoveCpt++;
 		const p = players.find(p => p.id === data.playerId);
 		if (!p) return;
-		const f = new Food(data.food.bonus, data.food.x, data.food.y);
-		const food = foodQuadTree.retrieve(
-			new Circle({ x: f.x, y: f.y, r: f.size })
-		);
-		if (food.length > 0) {
-			const f = food.find(fo => fo.x === data.food.x && fo.y === data.food.y);
-			if (f) {
-				if (foodRemoveCpt === 100) {
-					foodQuadTree.remove(f);
-					foodRemoveCpt = 0;
-				}
-				foodQuadTree.remove(f, true);
-			}
+		const food = foodManager.getFoodAtPosition(data.food.x, data.food.y);
+		if (food) {
+			foodManager.removeFood(food);
 		}
 		const res = p.addFood(data.food.bonus);
 		if (p.id === player.id) {
@@ -341,7 +326,7 @@ function launchClientGame() {
 			const bonus = content[i].bonus;
 			const x = content[i].x;
 			const y = content[i].y;
-			foodQuadTree.insert(new Food(bonus, x, y));
+			foodManager.forceAddFood(new Food(bonus, x, y));
 		}
 	});
 
@@ -444,7 +429,7 @@ function render() {
 	);
 	map.drawFood(
 		context,
-		foodQuadTree,
+		foodManager,
 		player,
 		canvas.width / (2 * zoomLevel),
 		canvas.height / (2 * zoomLevel)
@@ -482,11 +467,9 @@ document.addEventListener('wheel', (event) => {
 });
 
 function handleBonus(p) {
-	foodQuadTree
-		.retrieve(new Circle({ x: p.x, y: p.y, r: p.size }))
+	foodManager.getFoodNearPlayer(p)
 		.forEach(food => {
-			const distance = Math.hypot(food.x - p.x, food.y - p.y);
-			if (distance <= p.size) {
+			if (foodManager.CanEat(p, food)) {
 				socket.emit('player:eat', {
 					playerId: p.id,
 					x: food.x,

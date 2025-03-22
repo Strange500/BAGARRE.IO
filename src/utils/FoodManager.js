@@ -1,4 +1,4 @@
-import { Circle, Quadtree, Rectangle } from '@timohausmann/quadtree-ts';
+import { Circle, Quadtree } from '@timohausmann/quadtree-ts';
 import { Food } from '../client/class/Food.js';
 
 export const FOOD_BATCH = 100;
@@ -9,6 +9,7 @@ export class FoodManager {
 	_maxFood;
 	_foodAddCpt = 0;
 	_foodRemoveCpt = 0;
+	_foodArray;
 
 
 
@@ -19,23 +20,21 @@ export class FoodManager {
 			width: width,
 			height: height,
 		})
+		this._foodArray = [];
 		this._maxFoodBonus = maxFoodBonus;
 		this._maxFood = maxFood;
+
 		this._initializeFood();
 	}
 
 	getAllFood() {
-		return this._foodTree.retrieve(new Rectangle({
-			x: 0,
-			y: 0,
-			width: this._width,
-			height: this._height
-		}));
+		return this._foodArray;
 	}
 
 	_initializeFood() {
 		for (let i = 0; i < this._maxFood; i++) {
 			const food = this._genRandomFood();
+			this._foodArray.push(food);
 			this._foodTree.insert(food);
 		}
 	}
@@ -56,26 +55,41 @@ export class FoodManager {
 		}));
 	}
 
+	getFoodAtPosition(x, y) {
+		const results = this._foodTree.retrieve(new Circle({
+			x: x,
+			y: y,
+			r: 1
+		}));
+		return results.find(f => f.x === x && f.y === y);
+	}
+
+
 	getFoodForRectangle(rectangle) {
 		return this._foodTree.retrieve(rectangle);
 	}
 
-	getFoodIfCanEat(player, food) {
-		if (player) {
-			const serverFood = this._foodTree.retrieve(new Circle({
-				x: player.x,
-				y: player.y,
-				r: player.size
-			}));
-			const nearest = serverFood.find(f => f.x === food.x && f.y === food.y);
-			if (!nearest) return;
-			const distance = Math.hypot(nearest.x - player.x, nearest.y - player.y);
-			if (nearest && distance < player.size) {
-				return nearest;
+	CanEat(player, food) {
+		if (player && food) {
+			const distance = Math.hypot(food.x - player.x, food.y - player.y);
+			if (distance < player.size) {
+				return true;
 			}
 		}
 		return null;
 	}
+
+	getFoodIfCanEat(player, food) {
+			if (this.CanEat(player, food)) {
+				return this._foodTree.retrieve(new Circle({
+					x: food.x,
+					y: food.y,
+					r: 1
+				})).find(f => f.x === food.x && f.y === food.y && f.bonus === food.bonus);
+				}
+				return null;
+	}
+
 
 
 	addFood(onAdd) {
@@ -87,9 +101,15 @@ export class FoodManager {
 				const f = this._genRandomFood();
 				array.push(f);
 				this._foodTree.insert(f);
+				this._foodArray.push(f);
 			}
 			onAdd && onAdd(array);
 		}
+	}
+
+	forceAddFood(food) {
+		this._foodTree.insert(food);
+		this._foodArray.push(food);
 	}
 
 	removeFood(food, onRemove) {
@@ -100,8 +120,8 @@ export class FoodManager {
 		}else {
 			this._foodTree.remove(food, true);
 		}
+		this._foodArray = this._foodArray.filter(f => f !== food);
 		onRemove && onRemove();
 	}
-
 
 }

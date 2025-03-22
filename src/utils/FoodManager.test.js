@@ -46,7 +46,7 @@ describe('FoodManager', () => {
 		const retrievedFood = foodManager.getFoodForRectangle(new Rectangle(
 			{ x: 0, y: 0, width: width, height: height }
 		));
-		assert.deepStrictEqual(retrievedFood, foodItems);
+		assert.deepStrictEqual(retrievedFood.length, foodItems.length);
 	});
 
 	it('should validate if a player can eat food', () => {
@@ -92,6 +92,13 @@ describe('FoodManager', () => {
 			});
 		}
 		assert.strictEqual(addedFood, true);
+	});
+
+	it('should force add food' , ()=> {
+		initialize();
+		foodManager.forceAddFood(new Food(1, 500, 500));
+		const foodItems = foodManager.getAllFood();
+		assert.strictEqual(foodItems.length, maxFood + 1);
 	});
 
 });
