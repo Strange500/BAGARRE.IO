@@ -24,6 +24,8 @@ const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 const players = [];
 let foodQuadTree;
 let map;
+let updInter;
+
 export let socket;
 export let player;
 
@@ -72,11 +74,8 @@ function requestRoomChoices(socket) {
 		});
 	});
 }
-
 function setupUser(socket) {
-	const usrname = prompt('Enter your username: ');
-	socket.emit('init:ready', usrname || 'Anonymous');
-
+	socket.emit('init:ready');
 	function addUser(newPlayer) {
 		if (players.some(p => p.id === newPlayer.id)) {
 			return;
@@ -103,6 +102,23 @@ function setupUser(socket) {
 		console.log('New player in room:', newPlayer.name);
 		addUser(newPlayer);
 	});
+	socket.on('init:map', m => {
+		map = new GameMap(m.width, m.height);
+		socket.emit('init:mapReceived');
+		console.log('Map received');
+		socket.on('init:food', food => {
+			foodQuadTree = new Quadtree({
+				width: map.width,
+				height: map.height,
+			});
+			food.forEach(f => {
+				foodQuadTree.insert(new Food(f.bonus, f.x, f.y));
+			});
+			socket.emit('init:foodReceived');
+			console.log('Food received');
+
+		});
+	});
 	socket.on('room:players', newPlayers => {
 		console.log(
 			'Players in room:',
@@ -111,33 +127,35 @@ function setupUser(socket) {
 		newPlayers.forEach(newPlayer => {
 			addUser(newPlayer);
 		});
-		if (player) {
+
 			socket.emit('init:receivedPlayers');
-			socket.on('init:map', m => {
-				map = new GameMap(m.width, m.height);
-				socket.emit('init:mapReceived');
-				socket.on('init:food', food => {
-					foodQuadTree = new Quadtree({
-						width: map.width,
-						height: map.height,
-					});
-					food.forEach(f => {
-						foodQuadTree.insert(new Food(f.bonus, f.x, f.y));
-					});
-					socket.emit('init:foodReceived');
-					let ready = prompt('type OK when you are ready to start the game');
-					while (ready !== 'OK') {
-						ready = prompt('type OK when you are ready to start the game');
+
+			player = new Player('Anonymous', map.width / 2, map.height / 2, 123);
+			launchClientGame(socket);
+			setTimeout(() => {
+			 	const usrname = prompt('Enter your username: ');
+				socket.emit('init:name', usrname || 'Anonymous');
+				socket.on("you:player", (content) => {
+					player = new Player(content.name, content.x, content.y, content.id);
+					player.image = content.image;
+					player.color = content.color;
+					if (players.some(p => p.id === player.id)) {
+						return;
 					}
-					socket.emit('init:go');
-					console.log('Game is ready');
-					socket.on('game:start', () => {
-						console.log('Game started');
-						launchClientGame(socket);
-					});
+					players.push(player);
 				});
+				socket.emit("init:go");
+			}, 15000);
+
+
+
+			//socket.emit('init:go');
+			console.log('Game is ready');
+			socket.on('game:start', () => {
+				updInter = setInterval(updateGame, 1000 / 60);
+
+				console.log('Game started');
 			});
-		}
 	});
 }
 let stop = false;
@@ -145,7 +163,6 @@ let stop = false;
 let startPing;
 
 function launchClientGame() {
-	const updInter = setInterval(updateGame, 1000 / 60);
 	const scInter = setInterval(() => {
 		simulateScores(players);
 		updateScoreboard(players);

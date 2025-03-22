@@ -107,8 +107,44 @@ export class Hub {
         if (this.status === 'ended') {socket.emit('game:end');
             return;
         }
-        socket.on('init:ready', (playerName) => {
-            this.addPlayer(socket, playerName);
+        socket.on('init:ready', () => {
+            this.setupPlayerInitListeners(socket);
+            socket.on('init:foodReceived', () => {
+                console.log('Food received');
+                socket.emit('room:players', this.players);
+                socket.on('init:receivedPlayers', () => {
+                    console.log('Players received');
+                    socket.on('init:name', (playerName) => {
+                        this.addPlayer(socket, playerName);
+                        socket.emit("you:player", this.players.find(p => p.id === socket.id));
+                        socket.on('init:go', () => {
+                            console.log('Player is ready');
+                            const player = this.players.find(p => p.id === socket.id);
+                            if (player) {
+                                player.ready = true;
+                            }
+                            if (this.status === 'started') {
+                                player.ready = true;
+                                socket.emit('game:start');
+                                this._setListeners(socket);
+                                return;
+                            }
+                            let allReady = true;
+                            this.players.forEach(p => {
+                                if (!p.ready) {
+                                    allReady = false;
+                                }
+                            });
+                            this._setListeners(socket);
+                            if (allReady) {
+                                this.start();
+                            }
+                        });
+                    });
+                });
+            });
+
+
         });
     }
 
@@ -137,9 +173,9 @@ export class Hub {
             }
             this.players.push(player);
             this._sendToRoom('room:newPlayer', player);
-            socket.emit('room:players', this.players);
 
-            this.setupPlayerInitListeners(socket);
+
+
         } else if (this.bots.length > 0) {
 
         }
@@ -153,43 +189,12 @@ export class Hub {
     }
 
     setupPlayerInitListeners(socket) {
-        socket.on('init:receivedPlayers', () => {
-            console.log('Player received players');
             socket.emit('init:map', this.map);
-
             socket.on('init:mapReceived', () => {
                 console.log('Map received');
                 socket.emit('init:food', this.getAllFood());
 
-                socket.on('init:foodReceived', () => {
-                    console.log('Food received');
-
-                    socket.on('init:go', () => {
-                        console.log('Player is ready');
-                        const player = this.players.find(p => p.id === socket.id);
-                        if (player) {
-                            player.ready = true;
-                        }
-                        if (this.status === 'started') {
-                            player.ready = true;
-                            socket.emit('game:start');
-                            this._setListeners(socket);
-                            return;
-                        }
-                        let allReady = true;
-                        this.players.forEach(p => {
-                            if (!p.ready) {
-                                allReady = false;
-                            }
-                        });
-                        this._setListeners(socket);
-                        if (allReady) {
-                            this.start();
-                        }
-                    });
-                });
             });
-        });
     }
 
     _getNearestObject({ x, y }, objects) {
