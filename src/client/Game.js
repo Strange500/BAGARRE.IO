@@ -21,6 +21,9 @@ const fpsDiv = document.querySelector('#fps');
 const pingDiv = document.querySelector('#ping');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
+const lobbyForm=document.querySelector(".choice-lobby");
+const startForm=document.querySelector(".start-menu");
+
 
 const players = [];
 let foodManager;
@@ -67,6 +70,11 @@ function setupSocket() {
 function requestRoomChoices(socket) {
 	socket.on('room:choices', rooms => {
 		console.log('Available rooms:', rooms);
+		const allRoom=lobbyForm.querySelector("select");
+		allRoom.innerHTML="";
+		rooms.forEach((room)=>{
+			allRoom.innerHTML+=`<option value="${room}">${room}</option>`
+		});
 		/*const room = prompt('Enter room name: ' + rooms.join(', '));
 		socket.emit('room:join', room);
 
@@ -521,8 +529,6 @@ setInterval(() => {
 	soundManager.forceThemeStart();
 }, 1000);
 
-const lobbyForm=document.querySelector(".choice-lobby");
-const startForm=document.querySelector(".start-menu");
 
 lobbyForm.addEventListener("submit", (event )=>{
 	const formData=new FormData(lobbyForm.querySelector("form"));
