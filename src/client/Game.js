@@ -14,6 +14,7 @@ import { showBonus } from './handlers/BonusHandler.js';
 import { movePlayer } from '../server/movement.js';
 import { soundManager } from './handlers/SoundHandler.js';
 import { FoodManager } from '../utils/FoodManager.js';
+import { KillHandler } from '../utils/KillHandler.js';
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -23,6 +24,7 @@ const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 
 const players = [];
 let foodManager;
+let killHandler;
 let map;
 let updInter;
 
@@ -70,6 +72,7 @@ function requestRoomChoices(socket) {
 
 		socket.on('room:joined', () => {
 			console.log('Joined room:', room);
+			killHandler = new KillHandler();
 			setupUser(socket);
 		});
 	});
@@ -306,18 +309,20 @@ function launchClientGame() {
 
 	socket.on('player:killed', content => {
 		soundManager.playKillSound();
-		const p = players.find(p => p.id === content.playerId);
+		const killer = players.find(p => p.id === content.playerId);
 		const target = players.find(p => p.id === content.targetId);
-		if (p && target) {
-			p.addKill(target.size);
-			players.splice(players.indexOf(target), 1);
-			console.log(`Player ${p.name} killed ${target.name}`);
-			if (target === player) {
-				console.log('You were killed');
-				clearInterval(updInter);
-				clearInterval(scInter);
-				stop = true;
-			}
+		if (!target || !killer) {
+			return;
+		}
+		killHandler.forceKillPlayer(target, killer);
+		killer.addKill(target.size);
+		players.splice(players.indexOf(target), 1);
+		console.log(`Player ${killer.name} killed ${target.name}`);
+		if (target === player) {
+			console.log('You were killed');
+			clearInterval(updInter);
+			clearInterval(scInter);
+			stop = true;
 		}
 	});
 
@@ -483,13 +488,7 @@ function handleBonus(p) {
 function handleKill(p, players) {
 	for (let i = 0; i < players.length; i++) {
 		const other = players[i];
-		if (other === p || other.invincibility) continue;
-
-		const deltaXPlayer = other.x - p.x;
-		const deltaYPlayer = other.y - p.y;
-		const distanceToPlayer = Math.hypot(deltaXPlayer, deltaYPlayer);
-
-		if (p.size > other.size && distanceToPlayer < p.size) {
+		if (killHandler.canKillPlayer(other, p)) {
 			socket.emit('player:kill', {
 				playerId: p.id,
 				targetId: other.id,

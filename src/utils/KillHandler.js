@@ -25,12 +25,17 @@ export class KillHandler{
 		return distance < killer.size;
 	}
 	
-	killPlayer(target, killer){
+	killPlayer(target, killer, onKill){
 		if (this.canKillPlayer(target, killer)) {
 			this._mapKill.set(killer, [...(this._mapKill.get(killer) || []), target]);
+			onKill && onKill(target, killer);
 			return true;
 		}
 		return false;
+	}
+
+	forceKillPlayer(target, killer){
+		this._mapKill.set(killer, [...(this._mapKill.get(killer) || []), target]);
 	}
 	
 	isPlayerAlive(player){

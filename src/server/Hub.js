@@ -6,6 +6,7 @@ import { RandomBonus } from '../client/handlers/BonusHandler.js';
 import { movePlayer } from './movement.js';
 import fs from 'fs';
 import { FoodManager } from '../utils/FoodManager.js';
+import { KillHandler } from '../utils/KillHandler.js';
 
 async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -21,6 +22,8 @@ export class Hub {
     status;
     maxPlayers;
     deadPlayers;
+    foodManager;
+    killHandler;
 
     constructor({ maxSizeX, maxSizeY }, ioServer, roomName, maxPlayers, MaxFood, MaxFoodBonus) {
         this.map = new GameMap(maxSizeX, maxSizeY);
@@ -32,6 +35,7 @@ export class Hub {
         this.status = 'waiting'; // 'waiting', 'started', 'ended'
         this.maxPlayers = maxPlayers;
         this.foodManager  = new FoodManager(this.map.width, this.map.height, MaxFoodBonus, MaxFood);
+        this.killHandler = new KillHandler();
     }
 
     _saveTempImage(image) {
@@ -207,6 +211,16 @@ export class Hub {
         this.sendToRoom('food:remove', food);
     }
 
+    _onKill = (target, killer) => {
+        console.log(`Player ${killer.name} killed ${target.name}`);
+        killer.addKill(target.size);
+        this.players.splice(this.players.indexOf(target), 1);
+        this.sendToRoom('player:killed', {
+            playerId: killer.id,
+            targetId: target.id,
+        });
+    }
+
     async _setListeners(socket) {
         socket.on('player:eat', (content) => {
             const food = new Food(content.bonus, content.x, content.y);
@@ -235,16 +249,15 @@ export class Hub {
 
         socket.on('player:kill', (content) => {
             const player = this.players.find(p => p.id === content.playerId);
-            if (player) {
-                const target = this.players.find(p => p.id === content.targetId);
-                this._killPlayer(target, player);
-            }
+            const target = this.players.find(p => p.id === content.targetId);
+            this.killHandler.killPlayer(target, player, this._onKill);
         });
 
         socket.on('invincibility:start', (playerId) => {
             const player = this.players.find(p => p.id === playerId);
             if (player) {
-                player.invincible = true;
+                player.invincibility = true;
+                console.log('Player', player.name, 'is invincible');
                 this.sendToRoom('invincibility:start', playerId);
             }
         });
@@ -252,7 +265,8 @@ export class Hub {
         socket.on('invincibility:end', (playerId) => {
             const player = this.players.find(p => p.id === playerId);
             if (player) {
-                player.invincible = false;
+                player.invincibility = false;
+                console.log('Player', player.name, 'is no longer invincible');
                 this.sendToRoom('invincibility:end', playerId);
             }
         });
@@ -295,25 +309,10 @@ export class Hub {
 
             this.bots.forEach(bot => {
                 this.players.forEach(player => {
-                    this._killPlayer(player, bot);
+                    this.killHandler.killPlayer(player, bot, this._onKill);
                 });
             });
         }, 1000 / 60);
-    }
-
-    _killPlayer(target, killer) {
-        if (!target || !killer) return;
-        if (target.id === killer.id || target.size === START_SIZE) return;
-        const distance = Math.hypot(target.x - killer.x, target.y - killer.y);
-        if (distance < target.size && killer.size > target.size && !target.invincible) {
-            console.log(`Bot ${killer.name} killed ${target.name}`);
-            killer.addKill(target.size);
-            this.players.splice(this.players.indexOf(target), 1);
-            this.sendToRoom('player:killed', {
-                playerId: killer.id,
-                targetId: target.id,
-            });
-        }
     }
 
     async start() {

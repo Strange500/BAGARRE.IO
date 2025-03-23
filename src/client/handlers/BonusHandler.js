@@ -7,7 +7,6 @@ export const RandomBonus = () => {
 	theBonus.length = 0;
 	while (theBonus.length < 3) {
 		const randomBonus = BonusType[ Object.keys(BonusType)[Math.floor(Math.random() * Object.keys(BonusType).length)] ];
-		console.log('randomBonus', randomBonus);
 		if (!theBonus.includes(randomBonus)) {
 			theBonus.push(randomBonus);
 		}

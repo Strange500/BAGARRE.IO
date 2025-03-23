@@ -143,5 +143,24 @@ describe('KillHandler', () => {
 		assert.strictEqual(killHandler.isPlayerAlive(alice), true);
 	})
 
+	it("should call callback function on kill", () => {
+		initialize();
+		alice.size = 50;
+		bob.size = 40;
+		alice.x = 0;
+		alice.y = 0;
+		alice.invincibility = false;
+		bob.x = 0;
+		bob.y = 0;
+		bob.invincibility = false;
+		let called = false;
+		assert.strictEqual(true, killHandler.canKillPlayer(bob, alice));
+		killHandler.killPlayer(bob, alice, () => {
+			called = true;
+		});
+		assert.strictEqual(called, true);
+
+	})
+
 
 });
