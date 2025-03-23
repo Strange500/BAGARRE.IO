@@ -331,7 +331,9 @@ function launchClientGame() {
 			clearInterval(updInter);
 			clearInterval(scInter);
 			stop = true;
+			showReplayButton();
 		}
+		
 	});
 
 	socket.on('food:spawn', content => {
@@ -373,6 +375,7 @@ function launchClientGame() {
 		} else {
 			soundManager.playLoseTheme();
 		}
+		showReplayButton();
 	});
 
 	socket.on('player:bonus', content => {
@@ -385,6 +388,14 @@ function launchClientGame() {
 const times = [];
 let fps = 0;
 let zoomViaScroll = false;
+const buttonReplay=document.querySelector(".replay-button");
+buttonReplay.querySelector("button").addEventListener("click",()=>{
+	window.location.reload();
+})
+
+function showReplayButton(){
+	buttonReplay.style.display="block";
+}
 
 function computeFps() {
 	const now = performance.now();
