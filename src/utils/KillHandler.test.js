@@ -56,5 +56,36 @@ describe('KillHandler', () => {
 		assert.strictEqual(canKill2, false);
 	});
 
+	it("should tell me who killed who", () => {
+		initialize();
+		alice.size = 50;
+		bob.size = 40;
+		alice.x = 0;
+		alice.y = 0;
+		alice.invincibility = false;
+		bob.x = 0;
+		bob.y = 0;
+		bob.invincibility = false;
+		killHandler.killPlayer(bob, alice);
+		assert.deepStrictEqual(killHandler.getKills(alice), [bob]);
+		assert.deepStrictEqual(killHandler.getKills(bob), []);
+	})
+
+	it("should tell me if a player is alive", () => {
+		initialize();
+		alice.size = 50;
+		bob.size = 40;
+		alice.x = 0;
+		alice.y = 0;
+		alice.invincibility = false;
+		bob.x = 0;
+		bob.y = 0;
+		bob.invincibility = false;
+		assert.strictEqual(killHandler.isPlayerAlive(bob), true);
+		killHandler.killPlayer(bob, alice);
+		assert.strictEqual(killHandler.isPlayerAlive(bob), false);
+		assert.strictEqual(killHandler.isPlayerAlive(alice), true);
+	})
+
 
 });
