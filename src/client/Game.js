@@ -521,3 +521,39 @@ setInterval(() => {
 	soundManager.forceThemeStart();
 }, 1000);
 
+const ScoreBtn = document.querySelector('#ScoresButton');
+const ScoreDiv = document.querySelector('#scores');
+const table = document.querySelector('#scores-body');
+
+socket.on('bestScores', (data) => {
+	console.log("received best scores", data);
+	data.sort((a, b) => b.score - a.score);
+	data.forEach(score => {
+		const row = document.createElement('tr');
+		const nameTd = document.createElement('td');
+		const scoreTd = document.createElement('td');
+		const dateTd = document.createElement('td');
+		nameTd.textContent = score.name;
+		scoreTd.textContent = Math.round(score.score) + ' points';
+		dateTd.textContent = new Date(score.date).toLocaleString();
+		row.appendChild(nameTd);
+		row.appendChild(scoreTd);
+		row.appendChild(dateTd);
+		table.appendChild(row);
+	});
+});
+
+function showScores() {
+	socket.emit('get:bestScores');
+}
+
+ScoreBtn.addEventListener('click', () => {
+	if (ScoreDiv.style.display === 'none') {
+		ScoreDiv.style.display = 'block';
+		table.innerHTML = '';
+		showScores();
+	}
+	else {
+		ScoreDiv.style.display = 'none';
+	}
+});

@@ -188,6 +188,54 @@ h1 em {
     display: block;
 }
 
+#ScoresButton {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
+}
+
+#scores {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
+}
+
+#scores table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#scores th, #scores td {
+    padding: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#scores th {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+#scores tr:last-child td {
+    border-bottom: none;
+}
+
+
 .bonus-item p {
     position: absolute;
     top: 35%;
