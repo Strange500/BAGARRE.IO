@@ -56,6 +56,62 @@ describe('KillHandler', () => {
 		assert.strictEqual(canKill2, false);
 	});
 
+	it('should not kill if player is dead', () => {
+		initialize();
+
+		// make sure alice is bigger than bob
+		alice.size = 50;
+		bob.size = 40;
+
+		// make sure alice is close enough to bob
+		alice.x = 0;
+		alice.y = 0;
+		alice.invincibility = false;
+		bob.x = 0;
+		bob.y = 0;
+		bob.invincibility = false;
+
+		// assert alice can kill bob
+		const canKill = killHandler.canKillPlayer(bob, alice);
+		assert.strictEqual(canKill, true);
+
+		// kill bob
+		killHandler.killPlayer(bob, alice);
+
+		// assert bob is dead
+		assert.strictEqual(killHandler.isPlayerAlive(bob), false);
+
+		// assert alice can't kill bob
+		const canKill2 = killHandler.canKillPlayer(bob, alice);
+		assert.strictEqual(canKill2, false);
+	});
+
+	it('should not kill if player is invincible', () => {
+		initialize();
+
+		// make sure alice is bigger than bob
+		alice.size = 50;
+		bob.size = 40;
+
+		// make sure alice is close enough to bob
+		alice.x = 0;
+		alice.y = 0;
+		alice.invincibility = false;
+		bob.x = 0;
+		bob.y = 0;
+		bob.invincibility = true;
+
+		// assert alice can't kill bob
+		const canKill = killHandler.canKillPlayer(bob, alice);
+		assert.strictEqual(canKill, false);
+
+		bob.invincibility = false;
+
+		// assert alice can kill bob
+		const canKill2 = killHandler.canKillPlayer(bob, alice);
+		assert.strictEqual(canKill2, true);
+	});
+
 	it("should tell me who killed who", () => {
 		initialize();
 		alice.size = 50;
