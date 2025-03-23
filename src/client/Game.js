@@ -67,14 +67,14 @@ function setupSocket() {
 function requestRoomChoices(socket) {
 	socket.on('room:choices', rooms => {
 		console.log('Available rooms:', rooms);
-		const room = prompt('Enter room name: ' + rooms.join(', '));
+		/*const room = prompt('Enter room name: ' + rooms.join(', '));
 		socket.emit('room:join', room);
 
 		socket.on('room:joined', () => {
 			console.log('Joined room:', room);
 			killHandler = new KillHandler();
 			setupUser(socket);
-		});
+		});*/
 	});
 }
 
@@ -217,7 +217,7 @@ function setupUser(socket) {
 				: new Player('Anonymous', map.width / 2, map.height / 2, 2937);
 		showMenu();
 		launchClientGame(socket);
-		setTimeout(() => {
+		/*setTimeout(() => {
 			const usrname = prompt('Enter your username: ');
 			socket.emit('init:player', {
 					name: usrname || 'Anonymous',
@@ -234,7 +234,7 @@ function setupUser(socket) {
 				players.push(player);
 			});
 			socket.emit('init:go');
-		}, 10000);
+		}, 10000);*/
 
 			//socket.emit('init:go');
 			console.log('Game is ready');
@@ -521,3 +521,42 @@ setInterval(() => {
 	soundManager.forceThemeStart();
 }, 1000);
 
+const lobbyForm=document.querySelector(".choice-lobby");
+const startForm=document.querySelector(".start-menu");
+
+lobbyForm.addEventListener("submit", (event )=>{
+	const formData=new FormData(lobbyForm.querySelector("form"));
+	const room=formData.get("lobby");
+	event.preventDefault();
+	startForm.style.display="block";
+	lobbyForm.style.display="none";
+	socket.emit('room:join', room);
+
+		socket.on('room:joined', () => {
+			console.log('Joined room:', room);
+			killHandler = new KillHandler();
+			setupUser(socket);
+		});
+})
+
+startForm.addEventListener("submit", (event )=>{
+	const formData=new FormData(startForm.querySelector("form"));
+	const username=formData.get("pseudo");
+	event.preventDefault();
+	startForm.style.display="none";
+	socket.emit('init:player', {
+		name: username || 'Anonymous',
+		color: chooseColor,
+	});
+	socket.on('you:player', content => {
+		player = new Player(content.name, content.x, content.y, content.id);
+		player.image = content.image;
+		player.color = content.color;
+		player.size = content.size;
+		if (players.some(p => p.id === player.id)) {
+			return;
+		}
+		players.push(player);
+	});
+	socket.emit('init:go');
+})
