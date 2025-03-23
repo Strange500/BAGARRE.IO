@@ -1,5 +1,5 @@
 import { GameMap } from '../client/class/Map.js';
-import { Player, START_SIZE } from '../client/class/Player.js';
+import { Player } from '../client/class/Player.js';
 import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
@@ -329,8 +329,15 @@ export class Hub {
         this.sendToRoom('game:end', this.players[0].id);
     }
 
-    isOnlyBotLeft() {
-        return this.players.length === this.bots.length;
+    getScores() {
+        const realPlayers = this.players.filter(player => !(player instanceof Bot));
+        return realPlayers.map(player => {
+            return {
+                name: player.name,
+                score: player.score.getTotalScore(),
+                date: new Date(),
+            };
+        });
     }
 
     /**
