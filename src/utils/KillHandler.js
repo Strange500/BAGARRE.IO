@@ -18,6 +18,9 @@ export class KillHandler{
 		if (target.invincibility || target.size > killer.size || target.size === START_SIZE) {
 			return false;
 		}
+		if (!this.isPlayerAlive(target)) {
+			return false;
+		}
 		const distance = Math.hypot(target.x - killer.x, target.y - killer.y);
 		return distance < killer.size;
 	}
