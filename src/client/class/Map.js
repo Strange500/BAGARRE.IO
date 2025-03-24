@@ -52,11 +52,14 @@ export class GameMap {
         }));
         foods.forEach(food => {
                 context.beginPath();
-                context.arc(food.x, food.y, food.size, 0, 2 * Math.PI);
-                context.fillStyle = 'red';
-                context.fill();
-                context.strokeStyle = 'white';
-                context.stroke();
+                const image = food.img;
+                if (!imageMap.hasOwnProperty(image)) {
+                    imageMap[image] = new Image();
+                    imageMap[image].src = image;
+                }
+                context.drawImage(imageMap[image], food.x - food.size, food.y - food.size, food.size * 2, food.size * 2);
+
+
         });
     }
 

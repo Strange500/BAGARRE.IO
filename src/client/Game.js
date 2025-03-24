@@ -412,7 +412,7 @@ const zoomStep = 0.1; // How much to zoom in/out each time
 
 function drawGameOverScreen() {
 	context.font = `${FONT_SIZE} ${FONT_FAMILY}`;
-	context.fillStyle = 'black';
+	context.fillStyle = 'white';
 	context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
 }
 
