@@ -50,13 +50,4 @@ export class Score {
 	getTotalScore() {
 		return this.foodScore + this.bonusScore + this.killScore;
 	}
-
-	reset() {
-		this.foodScore = 0;
-		this.bonusScore = 0;
-		this.killScore = 0;
-		this.exp = 0;
-		this.level = 1;
-		this.coefScore = 1;
-	}
 }

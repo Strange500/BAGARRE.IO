@@ -48,29 +48,17 @@ describe('Score', () => {
 
 	it('should level up when gaining enough experience', () => {
 		const score = new Score();
-		score.gainExp(10);
+		score.gainExp(100);
 		assert.strictEqual(score.level, 2);
 		assert.strictEqual(score.exp, 0);
 	});
 
 	it('should calculate total score correctly', () => {
 		const score = new Score();
+		score.updateCoef(2);
 		score.addFoodScore(10);
 		score.addBonusScore(5);
 		score.addKillScore(2);
-		score.updateCoef(2);
 		assert.strictEqual(score.getTotalScore(), 34);
-	});
-
-	it('should reset the score', () => {
-		const score = new Score();
-		score.addFoodScore(10);
-		score.addBonusScore(5);
-		score.addKillScore(2);
-		score.updateCoef(2);
-		const expectedTotalScoreBeforeReset = (10 + 5 + 2) * 2;
-		assert.strictEqual(score.getTotalScore(), expectedTotalScoreBeforeReset);
-		score.reset();
-		assert.strictEqual(score.getTotalScore(), 0);
 	});
 });

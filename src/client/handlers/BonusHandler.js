@@ -1,5 +1,5 @@
-import { BonusType } from '../class/Bonus.js';
-import { applyBonusEffect } from '../class/Bonus.js';
+import { BonusType } from '../../utils/Bonus.js';
+import { applyBonusEffect } from '../../utils/Bonus.js';
 
 const theBonus = [];
 

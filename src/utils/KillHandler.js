@@ -1,4 +1,4 @@
-import { START_SIZE } from '../client/class/Player.js';
+import { START_SIZE } from '../entities/Player.js';
 
 
 export class KillHandler{

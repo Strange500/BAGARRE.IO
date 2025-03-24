@@ -1,6 +1,6 @@
 import {Player} from "./Player.js";
 import {Rectangle} from "@timohausmann/quadtree-ts";
-import { MAX_SPEED, SPEED_LEVEL } from '../../server/movement.js';
+import { MAX_SPEED, SPEED_LEVEL } from '../utils/movement.js';
 
 
 const viewLength = 500;

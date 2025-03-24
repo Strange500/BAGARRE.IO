@@ -1,9 +1,9 @@
-import { GameMap } from '../client/class/Map.js';
-import { Player } from '../client/class/Player.js';
-import { Bot } from '../client/class/Bot.js';
-import { Food } from '../client/class/Food.js';
+import { GameMap } from '../entities/Map.js';
+import { Player } from '../entities/Player.js';
+import { Bot } from '../entities/Bot.js';
+import { Food } from '../entities/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
-import { getMaxSpeed, movePlayer } from './movement.js';
+import { getMaxSpeed, movePlayer } from '../utils/movement.js';
 import fs from 'fs';
 import { FoodManager } from '../utils/FoodManager.js';
 import { KillHandler } from '../utils/KillHandler.js';

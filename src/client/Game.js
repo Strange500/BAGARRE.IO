@@ -1,5 +1,5 @@
-import { COLORS, Player } from './class/Player.js';
-import { GameMap } from './class/Map.js';
+import { COLORS, Player } from '../entities/Player.js';
+import { GameMap } from '../entities/Map.js';
 import { updateScoreboard, simulateScores } from './handlers/ScoreHandler.js';
 import {
 	computeTargetAngle,
@@ -7,11 +7,11 @@ import {
 	handleKeyUp,
 	handleMouseDirection,
 } from './handlers/MovementPlayerHandler.js';
-import { Food } from './class/Food.js';
+import { Food } from '../entities/Food.js';
 import { io } from 'socket.io-client';
-import { updatePlayerSheet } from './class/Player.js';
+import { updatePlayerSheet } from '../entities/Player.js';
 import { showBonus } from './handlers/BonusHandler.js';
-import { movePlayer } from '../server/movement.js';
+import { movePlayer } from '../utils/movement.js';
 import { soundManager } from './handlers/SoundHandler.js';
 import { FoodManager } from '../utils/FoodManager.js';
 import { KillHandler } from '../utils/KillHandler.js';
@@ -334,7 +334,9 @@ function launchClientGame() {
 			const bonus = content[i].bonus;
 			const x = content[i].x;
 			const y = content[i].y;
-			foodManager.forceAddFood(new Food(bonus, x, y));
+			const newFood = new Food(bonus, x, y);
+			newFood.img = content[i].img;
+			foodManager.forceAddFood(newFood);
 		}
 	});
 

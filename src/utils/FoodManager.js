@@ -1,5 +1,5 @@
 import { Circle, Quadtree } from '@timohausmann/quadtree-ts';
-import { Food } from '../client/class/Food.js';
+import { Food } from '../entities/Food.js';
 
 export const FOOD_BATCH = 100;
 

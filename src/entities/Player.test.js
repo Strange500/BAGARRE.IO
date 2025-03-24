@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { Player } from './Player.js';
-import { Score } from './Score.js';
+import { Score } from '../utils/Score.js';
 
 describe('Player', () => {
 	it('should initialize correctly', () => {
@@ -47,22 +47,5 @@ describe('Player', () => {
 		player.score.addKillScore(2);
 		player.applyDecay(1);
 		assert.strictEqual(player.score.getTotalScore(), 14);
-	});
-
-	it('should reset the player', () => {
-		const player = new Player('Grace', 0, 0, 7);
-		player.size = 30;
-		player.score.addFoodScore(10);
-		player.score.addBonusScore(5);
-		player.score.addKillScore(2);
-		player.score.updateCoef(2);
-		const expectedTotalScoreBeforeReset = (10 + 5 + 2) * 2;
-		assert.strictEqual(
-			player.score.getTotalScore(),
-			expectedTotalScoreBeforeReset
-		);
-		player.reset();
-		assert.strictEqual(player.size, 1);
-		assert.strictEqual(player.score.getTotalScore(), 0);
 	});
 });

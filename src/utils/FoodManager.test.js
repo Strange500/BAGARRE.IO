@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { FOOD_BATCH, FoodManager } from './FoodManager.js';
-import { Food } from '../client/class/Food.js';
+import { Food } from '../entities/Food.js';
 import { Rectangle } from '@timohausmann/quadtree-ts';
 
 

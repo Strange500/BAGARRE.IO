@@ -1,4 +1,4 @@
-import { START_SIZE } from '../client/class/Player.js';
+import { START_SIZE } from '../entities/Player.js';
 
 const INERTIA = 0.07;
 export const MAX_SPEED = 5;

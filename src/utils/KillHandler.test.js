@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { Player } from '../client/class/Player.js';
+import { Player } from '../entities/Player.js';
 import { KillHandler } from './KillHandler.js';
 
 

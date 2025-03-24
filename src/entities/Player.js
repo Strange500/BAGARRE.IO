@@ -1,5 +1,5 @@
-import { BonusType } from './Bonus.js';
-import { Score } from './Score.js';
+import { BonusType } from '../utils/Bonus.js';
+import { Score } from '../utils/Score.js';
 
 export const START_SIZE = 20;
 export const COLORS = ["red", "black", "white", "green", "yellow", "pink"];
@@ -85,11 +85,6 @@ export class Player {
 
 	applyDecay(rate) {
 		this.score.applyScoreDecay(rate);
-	}
-
-	reset() {
-		this.size = 1;
-		this.score.reset();
 	}
 }
 

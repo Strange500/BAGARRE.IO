@@ -1,4 +1,4 @@
-import { updatePlayerSheet } from './Player.js';
+import { updatePlayerSheet } from '../entities/Player.js';
 
 export const BonusType = {
 	DOUBLE_POINTS: 'Double Points',
