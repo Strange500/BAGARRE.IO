@@ -15,9 +15,11 @@ export function applyBonusEffect(bonusType, player, socket) {
 
 	switch (bonusType) {
 		case BonusType.DOUBLE_POINTS:
+			socket.emit('Double_point:start', player.id);
 			player.score.updateCoef(2);
 			setTimeout(() => {
 				console.log('Suppression du bonus:', bonusType);
+				socket.emit('Double_point:end', player.id);
 				player.score.updateCoef(1);
 				player.activeBonuses = player.activeBonuses.filter(
 					b => b.type !== bonusType

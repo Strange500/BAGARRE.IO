@@ -16,15 +16,15 @@ export class Score {
 	}
 
 	addFoodScore(amount) {
-		this.foodScore += amount;
+		this.foodScore += amount * this.coefScore;
 	}
 
 	addBonusScore(amount) {
-		this.bonusScore += amount;
+		this.bonusScore += amount * this.coefScore;
 	}
 
 	addKillScore(amount) {
-		this.killScore += amount;
+		this.killScore += amount * this.coefScore;
 	}
 
 	updateCoef(coef) {
@@ -39,7 +39,7 @@ export class Score {
 
 	gainExp(amount) {
 		this.exp += amount;
-		if (this.exp >= this.level * 10) {
+		if (this.exp >= this.level * 50) {
 			this.exp = 0;
 			this.level++;
 			return true;
@@ -48,7 +48,7 @@ export class Score {
 	}
 
 	getTotalScore() {
-		return (this.foodScore + this.bonusScore + this.killScore) * this.coefScore;
+		return this.foodScore + this.bonusScore + this.killScore;
 	}
 
 	reset() {
