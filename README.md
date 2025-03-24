@@ -20,32 +20,32 @@ Le jeu est un jeu multijoueur en ligne où les joueurs contrôlent un avatar qui
 ## Comment jouer <a name="howto"></a>
 
 ### Déplacement <a name="deplacement"></a>
-L'avatar peut être déplacé dans toutes les directions à l'aide des touches du clavier(z,q,s,d ou les flèches) ou de la souris(click, ou drag).
+L'avatar peut être déplacé dans toutes les directions à l'aide des touches du clavier(z,q,s,d ou les flèches) ou de la souris(drag).
 
 ### Bonus <a name="bonus"></a>
-Des bonus apparaissent régulièrement à des positions aléatoires sur le plateau.
+Vous obtenez des bonus à chaque niveau passé, pour gagner un niveau il faut gagner assez de exp.
 
 #### Nourriture <a name="bonusparagraph"></a>
-- La nourriture permet à l'avatar de grossir lorsqu'elle est consommée.
+- La nourriture ou les autres joueurs permet à l'avatar de grossir lorsqu'elle est consommée.
 - Plus un avatar est gros, plus il se déplace lentement.
 
 #### Bonus Temporaire <a name="tempparagraph"></a>
 - **Vitesse** : Augmente temporairement la vitesse de déplacement.
 - **Invincibilité** : Rend l'avatar invincible aux autres joueurs pendant une courte durée.
+- **Double Points** : Double ne coeficient de point obtenue pendant une courte durée.
 
 ## Mort <a name="death"></a>
-Un avatar meurt lorsqu'il est absorbé par un autre joueur plus grand que lui.
+Un avatar meurt lorsqu'il est absorbé par un autre joueur plus grand que lui. Il est ensuite renvoyez vers la page de menu.
 
 ## ScoreBoard <a name="board"></a>
-Le tableau des scores affiche le classement des joueurs en fonction de leur taille.
+Le tableau des scores affiche le classement des joueurs en fonction de leur scores.
 
 ### Points <a name="points"></a>
-- Chaque bonus collecté augmente la taille et le score du joueur.
-- Manger un autre joueur ajoute son score au sien.
+- Chaque nourriture collecté augmente la taille et le score du joueur.
+- Manger un autre joueur ajoute son score et sa taille au sien.
 
 ## Fin de Partie <a name="end"></a>
-La partie se termine lorsque tous les autres joueurs sont éliminés ou lorsqu'un objectif spécifique est atteint.
-
+La partie se termine lorsque tous les autres joueurs sont éliminés.
 
 ## Installation <a name="installation"></a>
 1. Cloner le dépôt
