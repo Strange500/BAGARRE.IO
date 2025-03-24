@@ -23,6 +23,8 @@ const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
 const lobbyForm=document.querySelectorAll(".choice-lobby");
 const startForm=document.querySelector(".start-menu");
+const buttonCredit=document.querySelector(".credit-button");
+const sheetCredit=document.querySelector(".credit-sheet");
 
 const players = [];
 let foodManager;
@@ -579,7 +581,15 @@ startForm.addEventListener('submit', event => {
 	});
 	socket.emit('init:go');
 });
-
+buttonCredit.addEventListener('click',(event)=>{
+	startForm.style.display = 'none';
+	lobbyForm.forEach((lobby)=>lobby.style.display = 'none');
+	sheetCredit.style.display='block';
+});
+const buttonReload=document.querySelector(".reload");
+buttonReload.addEventListener("click",()=>{
+	window.location.reload();
+})
 const ScoreBtn = document.querySelector('#ScoresButton');
 const ScoreDiv = document.querySelector('#scores');
 const table = document.querySelector('#scores-body');
