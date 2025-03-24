@@ -15,6 +15,8 @@ import { movePlayer } from '../utils/movement.js';
 import { soundManager } from './handlers/SoundHandler.js';
 import { FoodManager } from '../utils/FoodManager.js';
 import { KillHandler } from '../utils/KillHandler.js';
+import {PlayerPersonalisationHandler} from "./handlers/PlayerPersonalisationHandler";
+
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
@@ -27,6 +29,7 @@ const buttonCredit=document.querySelector(".credit-button");
 const sheetCredit=document.querySelector(".credit-sheet");
 let startTime;
 const players = [];
+const playerPersonalisationHandler = new PlayerPersonalisationHandler();
 let foodManager;
 let killHandler;
 let map;
@@ -79,78 +82,25 @@ function requestRoomChoices(socket) {
 	});
 }
 
-let chooseColor = "red";
 
 function showSpectatorBadge() {
 	document.querySelector('#spectator').style.display = 'block';
 }
 
-function addImageSelector() {
-	const fileInput = document.createElement('input');
-	fileInput.type = 'file';
-	fileInput.accept = 'image/*';
-	fileInput.onchange = (event) => {
-		event.preventDefault();
-		const file = event.target.files[0];
-		const reader = new FileReader();
-		reader.onload = (e) => {
-			// emit as imaage in base64
-			socket.emit('init:customImage', e.target.result);
-		};
-		reader.readAsDataURL(file);
-	};
-	return fileInput;
-}
-
-function showColorSelector() {
-	const colorChooser = document.querySelector('#colorChooser');
-	COLORS.forEach(color => {
-		const sec = document.createElement('section');
-		sec.style.backgroundColor = color;
-		sec.style.width = '50px';
-		sec.style.height = '50px';
-		sec.style.border = '1px solid black';
-		sec.style.display = 'inline-block';
-		sec.style.cursor = 'pointer';
-		sec.onclick = () => {
-			const secs = colorChooser.querySelectorAll('section');
-			secs.forEach(s => s.style.border = '1px solid black');
-			sec.style.border = '3px solid white';
-			chooseColor = color;
-		};
-		colorChooser.appendChild(sec);
-	});
-	// add a file input for a custom image
-	const fileInput = addImageSelector();
-	fileInput.style.display = 'none';
-	fileInput.id = 'fileInput';
-	const label = document.createElement('label');
-	label.htmlFor = 'fileInput';
-	label.textContent = 'Upload an Image';
-	label.style.display = 'block';
-	colorChooser.appendChild(fileInput);
-	colorChooser.appendChild(label);
-}
 
 function showMenu() {
 	showSpectatorBadge();
-	showColorSelector();
-
+	playerPersonalisationHandler.showColorSelector();
 }
 
 function hideSpectatorBadge() {
 	document.querySelector('#spectator').style.display = 'none';
 }
 
-function hideColorSelector() {
-	const colorChooser = document.querySelector('#colorChooser');
-	colorChooser.innerHTML = '';
-	colorChooser.style.display = 'none';
-}
 
 function hideMenu() {
 	hideSpectatorBadge();
-	hideColorSelector();
+	playerPersonalisationHandler.hideColorSelector();
 }
 
 function setupUser(socket) {
@@ -557,7 +507,7 @@ startForm.addEventListener('submit', event => {
 	document.querySelector("#menu").style.display="none";
 	socket.emit('init:player', {
 		name: username || 'Anonymous',
-		color: chooseColor,
+		color: playerPersonalisationHandler.choosenColor,
 	});
 	socket.on('you:player', content => {
 		player = new Player(content.name, content.x, content.y, content.id);
