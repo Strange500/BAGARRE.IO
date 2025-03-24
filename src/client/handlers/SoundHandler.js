@@ -1,5 +1,6 @@
 class SoundManager {
 	constructor() {
+		this.invincibleThemePlaying = false;
 		this.audioElements = {
 			kill: document.querySelector('#audioKill'),
 			eat: document.querySelector('#audioEat'),
@@ -8,6 +9,7 @@ class SoundManager {
 			gun: document.querySelector('#gun'),
 			lose: document.querySelector('#lose'),
 			win: document.querySelector('#win'),
+			star: document.querySelector('#star'),
 		};
 
 		this.configureTheme();
@@ -22,7 +24,7 @@ class SoundManager {
 	playSound(soundKey) {
 		const sound = this.audioElements[soundKey];
 		if (sound) {
-			sound.play().catch((error) => {
+			sound.play().catch(error => {
 				console.error(`Error playing sound: ${soundKey}`, error);
 			});
 		} else {
@@ -53,7 +55,7 @@ class SoundManager {
 	}
 
 	forceThemeStart() {
-		if (this.audioElements.theme.paused) {
+		if (this.audioElements.theme.paused && !this.invincibleThemePlaying) {
 			this.playSound('theme');
 		}
 	}
@@ -66,6 +68,25 @@ class SoundManager {
 	playLoseTheme() {
 		this.playSound('gun');
 		this.playDelayedSound('lose', this.audioElements.gun.duration);
+	}
+
+	playStarSound() {
+		this.stopTheme();
+		if (this.audioElements.star.paused) {
+			this.invincibleThemePlaying = true;
+			this.playSound('star');
+			setTimeout(() => {
+				this.invincibleThemePlaying = false;
+				this.stopStar();
+				this.forceThemeStart();
+			}, 10000);
+		}
+	}
+
+	stopStar() {
+		const star = this.audioElements.star;
+		star.pause();
+		star.currentTime = 0;
 	}
 
 	playDelayedSound(soundKey, delay) {
