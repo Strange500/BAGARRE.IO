@@ -542,20 +542,20 @@ setInterval(() => {
 
 lobbyForm.forEach((f)=>{
 	const form=f.querySelector("form");
-	f.addEventListener("submit", (event )=>{
-	const formData=new FormData(f);
-	const room=formData.get("lobby");
-	event.preventDefault();
-	startForm.style.display="block";
-	lobbyForm.forEach((lobby)=>{lobby.style.display="none"});
-	socket.emit('room:join', room);
+	form.addEventListener("submit", (event )=>{
+		const formData=new FormData(form);
+		const room=formData.get("lobby");
+		event.preventDefault();
+		startForm.style.display="block";
+		lobbyForm.forEach((lobby)=>{lobby.style.display="none"});
+		socket.emit('room:join', room);
 
-		socket.on('room:joined', () => {
-			console.log('Joined room:', room);
-			killHandler = new KillHandler();
-			setupUser(socket);
-		});
-	})
+			socket.on('room:joined', () => {
+				console.log('Joined room:', room);
+				killHandler = new KillHandler();
+				setupUser(socket);
+			});
+		})
 });
 
 startForm.addEventListener("submit", (event )=>{
