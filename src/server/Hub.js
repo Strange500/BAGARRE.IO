@@ -259,6 +259,9 @@ export class Hub {
 					console.log('Player', player.name, 'is cheating');
 					this.killHandler.killPlayer(player, new Player('Cheater', 0, 0, 'cheater'), this._onKill);
 				}
+			}else {
+					socket.emit('player:dead');
+					return;
 			}
 			this.sendToRoom('player:moved', content);
 		});

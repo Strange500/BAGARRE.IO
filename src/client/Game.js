@@ -477,6 +477,15 @@ function sendPosition() {
 		x: player.x,
 		y: player.y,
 	});
+
+	socket.on("player:dead", (content)=>{
+		soundManager.playLoseTheme();
+		console.log('You were killed');
+		clearInterval(updInter);
+		clearInterval(scInter);
+		stop = true;
+		showReplayButton();
+	});
 }
 
 function updateGame() {
