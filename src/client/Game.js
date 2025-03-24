@@ -21,8 +21,8 @@ const fpsDiv = document.querySelector('#fps');
 const pingDiv = document.querySelector('#ping');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
-const lobbyForm = document.querySelector('.choice-lobby');
-const startForm = document.querySelector('.start-menu');
+const lobbyForm=document.querySelectorAll(".choice-lobby");
+const startForm=document.querySelector(".start-menu");
 
 const players = [];
 let foodManager;
@@ -69,10 +69,10 @@ function setupSocket() {
 function requestRoomChoices(socket) {
 	socket.on('room:choices', rooms => {
 		console.log('Available rooms:', rooms);
-		const allRoom = lobbyForm.querySelector('select');
-		allRoom.innerHTML = '';
-		rooms.forEach(room => {
-			allRoom.innerHTML += `<option value="${room}">${room}</option>`;
+		const allRoom=document.querySelector(".select select");
+		allRoom.innerHTML="";
+		rooms.forEach((room)=>{
+			allRoom.innerHTML+=`<option value="${room}">${room}</option>`
 		});
 		/*const room = prompt('Enter room name: ' + rooms.join(', '));
 		socket.emit('room:join', room);
@@ -85,7 +85,7 @@ function requestRoomChoices(socket) {
 	});
 }
 
-let chooseColor = 'red';
+let chooseColor = "red";
 
 function showSpectatorBadge() {
 	document.querySelector('#spectator').style.display = 'block';
@@ -95,11 +95,11 @@ function addImageSelector() {
 	const fileInput = document.createElement('input');
 	fileInput.type = 'file';
 	fileInput.accept = 'image/*';
-	fileInput.onchange = event => {
+	fileInput.onchange = (event) => {
 		event.preventDefault();
 		const file = event.target.files[0];
 		const reader = new FileReader();
-		reader.onload = e => {
+		reader.onload = (e) => {
 			// emit as imaage in base64
 			socket.emit('init:customImage', e.target.result);
 		};
@@ -120,7 +120,7 @@ function showColorSelector() {
 		sec.style.cursor = 'pointer';
 		sec.onclick = () => {
 			const secs = colorChooser.querySelectorAll('section');
-			secs.forEach(s => (s.style.border = '1px solid black'));
+			secs.forEach(s => s.style.border = '1px solid black');
 			sec.style.border = '3px solid white';
 			chooseColor = color;
 		};
@@ -141,6 +141,7 @@ function showColorSelector() {
 function showMenu() {
 	showSpectatorBadge();
 	showColorSelector();
+
 }
 
 function hideSpectatorBadge() {
@@ -215,7 +216,7 @@ function setupUser(socket) {
 			addUser(newPlayer);
 		});
 
-		socket.emit('init:receivedPlayers');
+			socket.emit('init:receivedPlayers');
 
 		player =
 			players.length > 0
@@ -242,13 +243,13 @@ function setupUser(socket) {
 			socket.emit('init:go');
 		}, 10000);*/
 
-		//socket.emit('init:go');
-		console.log('Game is ready');
-		socket.on('game:start', () => {
-			updInter = setInterval(updateGame, 1000 / 60);
-			hideMenu();
-			console.log('Game started');
-		});
+			//socket.emit('init:go');
+			console.log('Game is ready');
+			socket.on('game:start', () => {
+				updInter = setInterval(updateGame, 1000 / 60);
+				hideMenu();
+				console.log('Game started');
+			});
 	});
 }
 let stop = false;
@@ -286,7 +287,7 @@ function launchClientGame() {
 		}
 	});
 
-	socket.on('room:replaceBot', content => {
+	socket.on('room:replaceBot', (content) => {
 		const botid = content.botId;
 		const newPlayer = content.player;
 		const bot = players.find(p => p.id === botid);
@@ -331,6 +332,7 @@ function launchClientGame() {
 			stop = true;
 			showReplayButton();
 		}
+		
 	});
 
 	socket.on('food:spawn', content => {
@@ -380,22 +382,18 @@ function launchClientGame() {
 		const listBonus = content;
 		showBonus(listBonus, player, socket);
 	});
-
-	socket.on('Double_point:end', content => {
-		player.score.updateCoef(1);
-	});
 }
 
 const times = [];
 let fps = 0;
 let zoomViaScroll = false;
-const buttonReplay = document.querySelector('.replay-button');
-buttonReplay.querySelector('button').addEventListener('click', () => {
+const buttonReplay=document.querySelector(".replay-button");
+buttonReplay.querySelector("button").addEventListener("click",()=>{
 	window.location.reload();
-});
+})
 
-function showReplayButton() {
-	buttonReplay.style.display = 'block';
+function showReplayButton(){
+	buttonReplay.style.display="block";
 }
 
 function computeFps() {
@@ -409,7 +407,7 @@ function computeFps() {
 function calculateZoomLevel(size) {
 	for (let i = 0; i < ZOOM_LEVEL_THRESHOLDS.length; i++) {
 		if (size < ZOOM_LEVEL_THRESHOLDS[i]) {
-			return 1 - i * 0.1;
+			return 1 - (i * 0.1);
 		}
 	}
 	return 0.6;
@@ -441,8 +439,8 @@ function render() {
 	context.clearRect(0, 0, canvas.width, canvas.height);
 	context.scale(zoomLevel, zoomLevel);
 
-	const offsetX = -player.x + canvas.width / (2 * zoomLevel);
-	const offsetY = -player.y + canvas.height / (2 * zoomLevel);
+	const offsetX = (-(player.x) + (canvas.width / (2 * zoomLevel)));
+	const offsetY = (-(player.y) + (canvas.height / (2 * zoomLevel)));
 	context.translate(offsetX, offsetY);
 
 	// Draw map and entities
@@ -486,22 +484,23 @@ function zoomOut() {
 	zoomLevel = Math.max(zoomLevel - zoomStep, 0.5); // Limit minimum zoom
 }
 
-document.addEventListener('wheel', event => {
+document.addEventListener('wheel', (event) => {
 	zoomViaScroll = true;
-	event.deltaY > 0 ? zoomOut() : zoomIn(); // Zoom in/out based on scroll direction
+	(event.deltaY > 0) ? zoomOut() : zoomIn(); // Zoom in/out based on scroll direction
 });
 
 function handleBonus(p) {
-	foodManager.getFoodNearPlayer(p).forEach(food => {
-		if (foodManager.CanEat(p, food)) {
-			socket.emit('player:eat', {
-				playerId: p.id,
-				x: food.x,
-				y: food.y,
-				bonus: food.bonus,
-			});
-		}
-	});
+	foodManager.getFoodNearPlayer(p)
+		.forEach(food => {
+			if (foodManager.CanEat(p, food)) {
+				socket.emit('player:eat', {
+					playerId: p.id,
+					x: food.x,
+					y: food.y,
+					bonus: food.bonus,
+				});
+			}
+		});
 }
 
 function handleKill(p, players) {
@@ -540,19 +539,23 @@ setInterval(() => {
 	soundManager.forceThemeStart();
 }, 1000);
 
-lobbyForm.addEventListener('submit', event => {
-	const formData = new FormData(lobbyForm.querySelector('form'));
-	const room = formData.get('lobby');
-	event.preventDefault();
-	startForm.style.display = 'block';
-	lobbyForm.style.display = 'none';
-	socket.emit('room:join', room);
 
-	socket.on('room:joined', () => {
-		console.log('Joined room:', room);
-		killHandler = new KillHandler();
-		setupUser(socket);
-	});
+lobbyForm.forEach((f)=>{
+	const form=f.querySelector("form");
+	form.addEventListener("submit", (event )=>{
+		const formData=new FormData(form);
+		const room=formData.get("lobby");
+		event.preventDefault();
+		startForm.style.display="block";
+		lobbyForm.forEach((lobby)=>{lobby.style.display="none"});
+		socket.emit('room:join', room);
+
+			socket.on('room:joined', () => {
+				console.log('Joined room:', room);
+				killHandler = new KillHandler();
+				setupUser(socket);
+			});
+		})
 });
 
 startForm.addEventListener('submit', event => {
