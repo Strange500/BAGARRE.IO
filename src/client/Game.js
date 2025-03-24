@@ -573,14 +573,19 @@ startForm.addEventListener('submit', event => {
 	startTime = performance.now();
 });
 buttonCredit.addEventListener('click',(event)=>{
-	startForm.style.display = 'none';
-	document.querySelector("#menu").style.display="none";
-	lobbyForm.forEach((lobby)=>lobby.style.display = 'none');
-	sheetCredit.style.display='block';
+	if (sheetCredit.style.display==="none"){
+		sheetCredit.style.display='block';
+	} else {
+		sheetCredit.style.display="none";
+	}
 });
-const buttonReload=document.querySelector(".reload");
-buttonReload.addEventListener("click",()=>{
-	window.location.reload();
+const closeCredit=document.querySelector(".reload");
+closeCredit.addEventListener("click",()=>{
+	if (sheetCredit.style.display==="none"){
+		sheetCredit.style.display='block';
+	} else {
+		sheetCredit.style.display="none";
+	}
 })
 const ScoreBtn = document.querySelector('#ScoresButton');
 const ScoreDiv = document.querySelector('#scores');
