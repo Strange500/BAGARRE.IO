@@ -37,12 +37,19 @@
                 </tbody>
             </table>
         </div>
-        <div class="choice-lobby">
+        <div class="choice-lobby select">
             <form>
                 <label for="lobby">Choisir un Lobby :</label>
                 <select id="lobby" name="lobby" required>
                 </select>
                 <button type="next">suivant</button>
+            </form>
+        </div>
+        <div class="choice-lobby create">
+            <form>
+                <label for="lobby">Nom du Lobby:</label>
+                <input type="text" id="lobby" name="lobby" required>
+                <button type="create">créer</button>
             </form>
         </div>
         <div class="start-menu" style="display: none;">

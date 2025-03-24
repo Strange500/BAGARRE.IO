@@ -21,9 +21,8 @@ const fpsDiv = document.querySelector('#fps');
 const pingDiv = document.querySelector('#ping');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
-const lobbyForm=document.querySelector(".choice-lobby");
+const lobbyForm=document.querySelectorAll(".choice-lobby");
 const startForm=document.querySelector(".start-menu");
-
 
 const players = [];
 let foodManager;
@@ -70,7 +69,7 @@ function setupSocket() {
 function requestRoomChoices(socket) {
 	socket.on('room:choices', rooms => {
 		console.log('Available rooms:', rooms);
-		const allRoom=lobbyForm.querySelector("select");
+		const allRoom=document.querySelector(".select select");
 		allRoom.innerHTML="";
 		rooms.forEach((room)=>{
 			allRoom.innerHTML+=`<option value="${room}">${room}</option>`
@@ -541,12 +540,14 @@ setInterval(() => {
 }, 1000);
 
 
-lobbyForm.addEventListener("submit", (event )=>{
-	const formData=new FormData(lobbyForm.querySelector("form"));
+lobbyForm.forEach((f)=>{
+	const form=f.querySelector("form");
+	f.addEventListener("submit", (event )=>{
+	const formData=new FormData(f);
 	const room=formData.get("lobby");
 	event.preventDefault();
 	startForm.style.display="block";
-	lobbyForm.style.display="none";
+	lobbyForm.forEach((lobby)=>{lobby.style.display="none"});
 	socket.emit('room:join', room);
 
 		socket.on('room:joined', () => {
@@ -554,7 +555,8 @@ lobbyForm.addEventListener("submit", (event )=>{
 			killHandler = new KillHandler();
 			setupUser(socket);
 		});
-})
+	})
+});
 
 startForm.addEventListener("submit", (event )=>{
 	const formData=new FormData(startForm.querySelector("form"));
