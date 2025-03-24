@@ -1,13 +1,12 @@
-import { Circle, Quadtree, Rectangle } from '@timohausmann/quadtree-ts';
 import { GameMap } from '../client/class/Map.js';
-import { Player, START_SIZE } from '../client/class/Player.js';
+import { Player } from '../client/class/Player.js';
 import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
 import { movePlayer } from './movement.js';
 import fs from 'fs';
-const FOOD_BATCH = 100;
-let foodRemoveCpt = 0;
+import { FoodManager } from '../utils/FoodManager.js';
+import { KillHandler } from '../utils/KillHandler.js';
 
 async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -22,25 +21,21 @@ export class Hub {
     name;
     status;
     maxPlayers;
-    maxFood;
-    maxFoodBonus;
+    deadPlayers;
+    foodManager;
+    killHandler;
 
     constructor({ maxSizeX, maxSizeY }, ioServer, roomName, maxPlayers, MaxFood, MaxFoodBonus) {
         this.map = new GameMap(maxSizeX, maxSizeY);
         this.players = [];
         this.bots = [];
-        this.food = new Quadtree({
-            width: this.map.width,
-            height: this.map.height
-        });
+        this.deadPlayers = [];
         this.io = ioServer; // Socket.io server instance
         this.name = roomName; // Room identifier
         this.status = 'waiting'; // 'waiting', 'started', 'ended'
         this.maxPlayers = maxPlayers;
-        this.maxFood = MaxFood;
-        this.maxFoodBonus = MaxFoodBonus;
-        this.foodCpt = 0;
-        this.initializeFood();
+        this.foodManager  = new FoodManager(this.map.width, this.map.height, MaxFoodBonus, MaxFood);
+        this.killHandler = new KillHandler();
     }
 
     _saveTempImage(image) {
@@ -59,41 +54,14 @@ export class Hub {
         return path.substring(8);
     }
 
-    _genRandomFood() {
-        return new Food(
-          (Math.random() * (this.maxFoodBonus -1)) + 1,
-          Math.random() * this.map.width,
-          Math.random() * this.map.height
-        );
-    }
 
-    initializeFood() {
-        for (let i = 0; i < this.maxFood; i++) {
-            const food = this._genRandomFood();
-            this.food.insert(food);
-        }
-    }
-
-    getAllFood() {
-        return this.food.retrieve(new Rectangle({
-            x: 0,
-            y: 0,
-            width: this.map.width,
-            height: this.map.height
-        }));
-    }
-
-    _sendToRoom(event, data) {
+    sendToRoom(event, data) {
         this.io.to(this.name).emit(event, data);
-    }
-
-    _onRoomEvent(event, callback) {
-        this.io.to(this.name).on(event, callback);
     }
 
     handleDisconnect(socket) {
         console.log('A user disconnected from room', this.name);
-        this._sendToRoom('playerDisconnected', socket.id);
+        this.sendToRoom('playerDisconnected', socket.id);
         this.players = this.players.filter(player => player.id !== socket.id);
         this._spawnBot();
     }
@@ -192,25 +160,20 @@ export class Hub {
                 const bot = this.bots.pop();
                 this.players.splice(this.players.indexOf(bot), 1);
                 console.log(`Bot ${bot.name} replaced by player ${player.name}`);
-                this._sendToRoom('room:replaceBot', {
+                this.sendToRoom('room:replaceBot', {
                     botId: bot.id,
-                    player: player
+                    player: player,
                 })
             }
             this.players.push(player);
-            this._sendToRoom('room:newPlayer', player);
-
-
-
-        } else if (this.bots.length > 0) {
-
+            this.sendToRoom('room:newPlayer', player);
         }
     }
 
     _addBot(bot) {
         if (this.players.length < this.maxPlayers) {
             this.players.push(bot);
-            this._sendToRoom('room:newPlayer', bot);
+            this.sendToRoom('room:newPlayer', bot);
         }
     }
 
@@ -218,7 +181,8 @@ export class Hub {
             socket.emit('init:map', this.map);
             socket.on('init:mapReceived', () => {
                 console.log('Map received');
-                socket.emit('init:food', this.getAllFood());
+                console.log('Food', this.foodManager.getAllFood());
+                socket.emit('init:food', this.foodManager.getAllFood());
 
             });
     }
@@ -239,34 +203,38 @@ export class Hub {
         }
     }
 
+    _onFoodAdd = (foods) => {
+        this.sendToRoom('food:spawn', foods);
+    }
+
+    _onFoodRemove = (food) => {
+        this.sendToRoom('food:remove', food);
+    }
+
+    _onKill = (target, killer) => {
+        console.log(`Player ${killer.name} killed ${target.name}`);
+        killer.addKill(target.size);
+        this.players.splice(this.players.indexOf(target), 1);
+        this.sendToRoom('player:killed', {
+            playerId: killer.id,
+            targetId: target.id,
+        });
+    }
+
     async _setListeners(socket) {
         socket.on('player:eat', (content) => {
             const food = new Food(content.bonus, content.x, content.y);
             const player = this.players.find(p => p.id === content.playerId);
-            if (player) {
-                const serverFood = this.food.retrieve(new Circle({
-                    x: player.x,
-                    y: player.y,
-                    r: player.size
-                }));
-                const nearest = serverFood.find(f => f.x === food.x && f.y === food.y);
-                if (!nearest) return;
-                const distance = Math.hypot(nearest.x - player.x, nearest.y - player.y);
-                if (nearest && distance < player.size) {
-                    this.addFood();
-                    if (foodRemoveCpt >= FOOD_BATCH) {
-                        foodRemoveCpt = 0;
-                        this.food.remove(nearest);
-                    } else {
-                        foodRemoveCpt++;
-                        this.food.remove(nearest, true);
-                    }
-                    player.addFood(nearest.bonus);
-                    this._sendToRoom('food:ate', {
-                        food: nearest,
-                        playerId: player.id
-                    });
-                }
+            const realFood = this.foodManager.getFoodIfCanEat(player, food);
+            if (realFood) {
+                this.foodManager.addFood(this._onFoodAdd);
+                this.foodManager.removeFood(realFood, this._onFoodRemove);
+                player.addFood(realFood.bonus);
+                this.sendToRoom('food:ate', {
+                    food: realFood,
+                    playerId: player.id,
+                });
+
             }
         });
 
@@ -276,25 +244,30 @@ export class Hub {
                 player.x = content.x;
                 player.y = content.y;
             }
-            this._sendToRoom('player:moved', content);
+            this.sendToRoom('player:moved', content);
         });
 
         socket.on('player:kill', (content) => {
             const player = this.players.find(p => p.id === content.playerId);
+            const target = this.players.find(p => p.id === content.targetId);
+            this.killHandler.killPlayer(target, player, this._onKill);
+        });
+
+        socket.on('invincibility:start', (playerId) => {
+            const player = this.players.find(p => p.id === playerId);
             if (player) {
-                const target = this.players.find(p => p.id === content.targetId);
-                if (target) {
-                    console.log(`Player ${player.name} might have killed ${target.name}`);
-                    const distance = Math.hypot(target.x - player.x, target.y - player.y);
-                    if (distance > player.size) return;
-                    console.log(`Player ${player.name} killed ${target.name}`);
-                    player.addKill(target.size);
-                    this.players.splice(this.players.indexOf(target), 1);
-                    this._sendToRoom('player:killed', {
-                        playerId: player.id,
-                        targetId: target.id
-                    });
-                }
+                player.invincibility = true;
+                console.log('Player', player.name, 'is invincible');
+                this.sendToRoom('invincibility:start', playerId);
+            }
+        });
+
+        socket.on('invincibility:end', (playerId) => {
+            const player = this.players.find(p => p.id === playerId);
+            if (player) {
+                player.invincibility = false;
+                console.log('Player', player.name, 'is no longer invincible');
+                this.sendToRoom('invincibility:end', playerId);
             }
         });
 
@@ -311,46 +284,32 @@ export class Hub {
     startGameLoop() {
         return setInterval(() => {
             this.bots.forEach(bot => {
-                bot.nextMove(this.food, this.players);
+                bot.nextMove(this.foodManager, this.players);
                 movePlayer(bot, this.map);
-                this._sendToRoom('player:moved', {
+                this.sendToRoom('player:moved', {
                     x: bot.x,
                     y: bot.y,
-                    playerId: bot.id
+                    playerId: bot.id,
                 });
             });
 
             this.bots.forEach(bot => {
-                const food = this.food.retrieve(new Circle({
-                    x: bot.x,
-                    y: bot.y,
-                    r: bot.size
-                }));
+                const food = this.foodManager.getFoodNearPlayer(bot);
                 const nearest = this._getNearestObject(bot, food);
                 if (nearest.nearest && nearest.distance < bot.size) {
-                    this.food.remove(nearest.nearest);
-                    this.addFood();
+                    this.foodManager.removeFood(nearest.nearest, this._onFoodRemove);
+                    this.foodManager.addFood(this._onFoodAdd);
                     bot.addFood(nearest.nearest.bonus);
-                    this._sendToRoom('food:ate', {
+                    this.sendToRoom('food:ate', {
                         food: nearest.nearest,
-                        playerId: bot.id
+                        playerId: bot.id,
                     });
                 }
             });
 
             this.bots.forEach(bot => {
                 this.players.forEach(player => {
-                    if (player.id === bot.id || player.size === START_SIZE) return;
-                    const distance = Math.hypot(player.x - bot.x, player.y - bot.y);
-                    if (distance < player.size && bot.size > player.size) {
-                        console.log(`Bot ${bot.name} killed ${player.name}`);
-                        bot.addKill(player.size);
-                        this.players.splice(this.players.indexOf(player), 1);
-                        this._sendToRoom('player:killed', {
-                            playerId: bot.id,
-                            targetId: player.id
-                        });
-                    }
+                    this.killHandler.killPlayer(player, bot, this._onKill);
                 });
             });
         }, 1000 / 60);
@@ -359,7 +318,7 @@ export class Hub {
     async start() {
         this._fillWithBots();
         const loop = this.startGameLoop();
-        this._sendToRoom('game:start');
+        this.sendToRoom('game:start');
         this.status = 'started';
 
        while (!this.isGameEnded()) {
@@ -367,11 +326,18 @@ export class Hub {
        }
         console.log('Game ended');
         clearInterval(loop);
-        this._sendToRoom('game:end', this.players[0].id);
+        this.sendToRoom('game:end', this.players[0].id);
     }
 
-    isOnlyBotLeft() {
-        return this.players.length === this.bots.length;
+    getScores() {
+        const realPlayers = this.players.filter(player => !(player instanceof Bot));
+        return realPlayers.map(player => {
+            return {
+                name: player.name,
+                score: player.score.getTotalScore(),
+                date: new Date(),
+            };
+        });
     }
 
     /**
@@ -393,17 +359,5 @@ export class Hub {
         this.map = null;
     }
 
-    addFood() {
-        this.foodCpt++;
-        if (this.foodCpt >= FOOD_BATCH) {
-            this.foodCpt = 0;
-            const array = []
-            for (let i = 0; i < FOOD_BATCH; i++) {
-                const f = this._genRandomFood();
-                array.push(f);
-                this.food.insert(f);
-            }
-            this._sendToRoom("food:spawn", array);
-        }
-    }
+
 }

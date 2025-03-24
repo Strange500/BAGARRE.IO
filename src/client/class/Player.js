@@ -37,6 +37,7 @@ export class Player {
 	color;
 	invincibility;
 	activeBonuses;
+	speedMultiplier;
 
 	constructor(name, x, y, id) {
 		this.name = name;
@@ -59,6 +60,7 @@ export class Player {
 		}
 		this.invincibility = false;
 		this.activeBonuses = [];
+		this.speedMultiplier = 1;
 	}
 
 	increaseSize(amount) {

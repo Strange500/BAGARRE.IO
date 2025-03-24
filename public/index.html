@@ -37,6 +37,24 @@
                 </tbody>
             </table>
         </div>
+        <div class="choice-lobby">
+            <form>
+                <label for="lobby">Choisir un Lobby :</label>
+                <select id="lobby" name="lobby" required>
+                </select>
+                <button type="next">suivant</button>
+            </form>
+        </div>
+        <div class="start-menu" style="display: none;">
+            <form>
+                <label for="pseudo">Pseudo :</label>
+                <input type="text" id="pseudo" name="pseudo" required>
+                <button type="play">jouer</button>
+            </form>
+        </div>
+        <div class="replay-button" style="display: none;">
+            <button type="replay">Rejouer?</button>
+        </div>
         <div class="BonusList"></div>
         <div class="playersheet">
             <table>
@@ -61,6 +79,22 @@
         <audio id="lose" src="/audio/lose.mp3" preload="auto"></audio>
         <audio id="win" src="/audio/victoryVoice.mp3" preload="auto"></audio>
         <audio id="gun" src="/audio/gun.mp3" preload="auto"></audio>
+
+        <a id="ScoresButton">Show Scores</a>
+        <div id="scores" style="display: none">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="scores-body">
+
+                </tbody>
+            </table>
+        </div>
 
       </div>
 </body>

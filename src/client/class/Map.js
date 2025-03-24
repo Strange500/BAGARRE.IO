@@ -42,8 +42,8 @@ export class GameMap {
         }
     }
 
-    drawFood(context, foodQuadTree, player, viewLength, viewHeight) {
-        const foods = foodQuadTree.retrieve(new Rectangle({
+    drawFood(context, foodManager, player, viewLength, viewHeight) {
+        const foods = foodManager.getFoodForRectangle(new Rectangle({
             x: player.x - viewLength,
             y: player.y - viewHeight,
             width: viewLength * 2,

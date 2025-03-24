@@ -8,21 +8,26 @@ import {
 	handleMouseDirection,
 } from './handlers/MovementPlayerHandler.js';
 import { Food } from './class/Food.js';
-import { Circle, Quadtree } from '@timohausmann/quadtree-ts';
 import { io } from 'socket.io-client';
 import { updatePlayerSheet } from './class/Player.js';
 import { showBonus } from './handlers/BonusHandler.js';
 import { movePlayer } from '../server/movement.js';
-import { soundManager } from './handlers/SoundHandler';
+import { soundManager } from './handlers/SoundHandler.js';
+import { FoodManager } from '../utils/FoodManager.js';
+import { KillHandler } from '../utils/KillHandler.js';
 
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
 const pingDiv = document.querySelector('#ping');
 const context = canvas.getContext('2d');
 const canvasResizeObserver = new ResizeObserver(resampleCanvas);
+const lobbyForm=document.querySelector(".choice-lobby");
+const startForm=document.querySelector(".start-menu");
+
 
 const players = [];
-let foodQuadTree;
+let foodManager;
+let killHandler;
 let map;
 let updInter;
 
@@ -65,13 +70,19 @@ function setupSocket() {
 function requestRoomChoices(socket) {
 	socket.on('room:choices', rooms => {
 		console.log('Available rooms:', rooms);
-		const room = prompt('Enter room name: ' + rooms.join(', '));
+		const allRoom=lobbyForm.querySelector("select");
+		allRoom.innerHTML="";
+		rooms.forEach((room)=>{
+			allRoom.innerHTML+=`<option value="${room}">${room}</option>`
+		});
+		/*const room = prompt('Enter room name: ' + rooms.join(', '));
 		socket.emit('room:join', room);
 
 		socket.on('room:joined', () => {
 			console.log('Joined room:', room);
+			killHandler = new KillHandler();
 			setupUser(socket);
-		});
+		});*/
 	});
 }
 
@@ -189,12 +200,9 @@ function setupUser(socket) {
 		socket.emit('init:mapReceived');
 		console.log('Map received');
 		socket.on('init:food', food => {
-			foodQuadTree = new Quadtree({
-				width: map.width,
-				height: map.height,
-			});
+			foodManager = new FoodManager(map.width, map.height, -1, -1);
 			food.forEach(f => {
-				foodQuadTree.insert(new Food(f.bonus, f.x, f.y));
+				foodManager.forceAddFood(new Food(f.bonus, f.x, f.y));
 			});
 			socket.emit('init:foodReceived');
 			console.log('Food received');
@@ -217,7 +225,7 @@ function setupUser(socket) {
 				: new Player('Anonymous', map.width / 2, map.height / 2, 2937);
 		showMenu();
 		launchClientGame(socket);
-		setTimeout(() => {
+		/*setTimeout(() => {
 			const usrname = prompt('Enter your username: ');
 			socket.emit('init:player', {
 					name: usrname || 'Anonymous',
@@ -234,7 +242,7 @@ function setupUser(socket) {
 				players.push(player);
 			});
 			socket.emit('init:go');
-		}, 10000);
+		}, 10000);*/
 
 			//socket.emit('init:go');
 			console.log('Game is ready');
@@ -263,25 +271,13 @@ function launchClientGame() {
 	}, 1000);
 
 	requestAnimationFrame(render);
-	let foodRemoveCpt = 0;
 
 	socket.on('food:ate', data => {
-		foodRemoveCpt++;
 		const p = players.find(p => p.id === data.playerId);
 		if (!p) return;
-		const f = new Food(data.food.bonus, data.food.x, data.food.y);
-		const food = foodQuadTree.retrieve(
-			new Circle({ x: f.x, y: f.y, r: f.size })
-		);
-		if (food.length > 0) {
-			const f = food.find(fo => fo.x === data.food.x && fo.y === data.food.y);
-			if (f) {
-				if (foodRemoveCpt === 100) {
-					foodQuadTree.remove(f);
-					foodRemoveCpt = 0;
-				}
-				foodQuadTree.remove(f, true);
-			}
+		const food = foodManager.getFoodAtPosition(data.food.x, data.food.y);
+		if (food) {
+			foodManager.removeFood(food);
 		}
 		const res = p.addFood(data.food.bonus);
 		if (p.id === player.id) {
@@ -321,19 +317,23 @@ function launchClientGame() {
 
 	socket.on('player:killed', content => {
 		soundManager.playKillSound();
-		const p = players.find(p => p.id === content.playerId);
+		const killer = players.find(p => p.id === content.playerId);
 		const target = players.find(p => p.id === content.targetId);
-		if (p && target) {
-			p.addKill(target.size);
-			players.splice(players.indexOf(target), 1);
-			console.log(`Player ${p.name} killed ${target.name}`);
-			if (target === player) {
-				console.log('You were killed');
-				clearInterval(updInter);
-				clearInterval(scInter);
-				stop = true;
-			}
+		if (!target || !killer) {
+			return;
 		}
+		killHandler.forceKillPlayer(target, killer);
+		killer.addKill(target.size);
+		players.splice(players.indexOf(target), 1);
+		console.log(`Player ${killer.name} killed ${target.name}`);
+		if (target === player) {
+			console.log('You were killed');
+			clearInterval(updInter);
+			clearInterval(scInter);
+			stop = true;
+			showReplayButton();
+		}
+		
 	});
 
 	socket.on('food:spawn', content => {
@@ -341,7 +341,26 @@ function launchClientGame() {
 			const bonus = content[i].bonus;
 			const x = content[i].x;
 			const y = content[i].y;
-			foodQuadTree.insert(new Food(bonus, x, y));
+			foodManager.forceAddFood(new Food(bonus, x, y));
+		}
+	});
+
+	socket.on('invincibility:start', id => {
+		const p = players.find(p => p.id === id);
+		if (p) {
+			p.invincibility = true;
+			if (!p.oldImg) {
+				p.oldImg = p.image;
+			}
+			p.image = '/img/invincible.webp';
+		}
+	});
+
+	socket.on('invincibility:end', id => {
+		const p = players.find(p => p.id === id);
+		if (p) {
+			p.invincibility = false;
+			p.image = p.oldImg;
 		}
 	});
 
@@ -356,18 +375,27 @@ function launchClientGame() {
 		} else {
 			soundManager.playLoseTheme();
 		}
+		showReplayButton();
 	});
 
 	socket.on('player:bonus', content => {
 		soundManager.playBonusSound();
 		const listBonus = content;
-		showBonus(listBonus, player);
+		showBonus(listBonus, player, socket);
 	});
 }
 
 const times = [];
 let fps = 0;
 let zoomViaScroll = false;
+const buttonReplay=document.querySelector(".replay-button");
+buttonReplay.querySelector("button").addEventListener("click",()=>{
+	window.location.reload();
+})
+
+function showReplayButton(){
+	buttonReplay.style.display="block";
+}
 
 function computeFps() {
 	const now = performance.now();
@@ -425,7 +453,7 @@ function render() {
 	);
 	map.drawFood(
 		context,
-		foodQuadTree,
+		foodManager,
 		player,
 		canvas.width / (2 * zoomLevel),
 		canvas.height / (2 * zoomLevel)
@@ -463,11 +491,9 @@ document.addEventListener('wheel', (event) => {
 });
 
 function handleBonus(p) {
-	foodQuadTree
-		.retrieve(new Circle({ x: p.x, y: p.y, r: p.size }))
+	foodManager.getFoodNearPlayer(p)
 		.forEach(food => {
-			const distance = Math.hypot(food.x - p.x, food.y - p.y);
-			if (distance <= p.size) {
+			if (foodManager.CanEat(p, food)) {
 				socket.emit('player:eat', {
 					playerId: p.id,
 					x: food.x,
@@ -481,13 +507,7 @@ function handleBonus(p) {
 function handleKill(p, players) {
 	for (let i = 0; i < players.length; i++) {
 		const other = players[i];
-		if (other === p || other.invincibility) continue;
-
-		const deltaXPlayer = other.x - p.x;
-		const deltaYPlayer = other.y - p.y;
-		const distanceToPlayer = Math.hypot(deltaXPlayer, deltaYPlayer);
-
-		if (p.size > other.size && distanceToPlayer < p.size) {
+		if (killHandler.canKillPlayer(other, p)) {
 			socket.emit('player:kill', {
 				playerId: p.id,
 				targetId: other.id,
@@ -519,4 +539,79 @@ setInterval(() => {
 	}
 	soundManager.forceThemeStart();
 }, 1000);
+
+
+lobbyForm.addEventListener("submit", (event )=>{
+	const formData=new FormData(lobbyForm.querySelector("form"));
+	const room=formData.get("lobby");
+	event.preventDefault();
+	startForm.style.display="block";
+	lobbyForm.style.display="none";
+	socket.emit('room:join', room);
+
+		socket.on('room:joined', () => {
+			console.log('Joined room:', room);
+			killHandler = new KillHandler();
+			setupUser(socket);
+		});
+})
+
+startForm.addEventListener("submit", (event )=>{
+	const formData=new FormData(startForm.querySelector("form"));
+	const username=formData.get("pseudo");
+	event.preventDefault();
+	startForm.style.display="none";
+	socket.emit('init:player', {
+		name: username || 'Anonymous',
+		color: chooseColor,
+	});
+	socket.on('you:player', content => {
+		player = new Player(content.name, content.x, content.y, content.id);
+		player.image = content.image;
+		player.color = content.color;
+		player.size = content.size;
+		if (players.some(p => p.id === player.id)) {
+			return;
+		}
+		players.push(player);
+	});
+	socket.emit('init:go');
+})
+
+const ScoreBtn = document.querySelector('#ScoresButton');
+const ScoreDiv = document.querySelector('#scores');
+const table = document.querySelector('#scores-body');
+
+socket.on('bestScores', (data) => {
+	console.log("received best scores", data);
+	data.sort((a, b) => b.score - a.score);
+	data.forEach(score => {
+		const row = document.createElement('tr');
+		const nameTd = document.createElement('td');
+		const scoreTd = document.createElement('td');
+		const dateTd = document.createElement('td');
+		nameTd.textContent = score.name;
+		scoreTd.textContent = Math.round(score.score) + ' points';
+		dateTd.textContent = new Date(score.date).toLocaleString();
+		row.appendChild(nameTd);
+		row.appendChild(scoreTd);
+		row.appendChild(dateTd);
+		table.appendChild(row);
+	});
+});
+
+function showScores() {
+	socket.emit('get:bestScores');
+}
+
+ScoreBtn.addEventListener('click', () => {
+	if (ScoreDiv.style.display === 'none') {
+		ScoreDiv.style.display = 'block';
+		table.innerHTML = '';
+		showScores();
+	}
+	else {
+		ScoreDiv.style.display = 'none';
+	}
+});
 

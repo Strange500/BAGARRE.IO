@@ -1,5 +1,5 @@
 import { canvas, player } from '../Game.js';
-import { MAX_SPEED, SPEED_LEVEL } from '../../server/movement';
+import { MAX_SPEED, SPEED_LEVEL } from '../../server/movement.js';
 
 const maxDistanceToReachMaxSpeed = 100;
 let isKeyboardControl = false;

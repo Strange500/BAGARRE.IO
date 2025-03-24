@@ -7,6 +7,18 @@ const port = 3000;
 const hubs = {}; // Object for managing hubs
 const users = {}; // Object for managing connected users by socket ID
 
+const SCORES_TO_KEEP = 10;
+const bestScoreJsonFile = './public/bestScores.json';
+const bestScores = loadBestScores(bestScoreJsonFile);
+
+function loadBestScores(path) {
+	if (!fs.existsSync(path)) {
+		fs.writeFileSync(path, JSON.stringify([]));
+	}
+	const data = fs.readFileSync(path);
+	return JSON.parse(data);
+}
+
 // Create HTTP server and handle requests
 const httpServer = http.createServer((req, res) => {
 	res.writeHead(403, { 'Content-Type': 'text/plain' });
@@ -31,6 +43,11 @@ io.on('connection', (socket) => {
 
 	// Send available rooms to the newly connected user
 	socket.emit('room:choices', Object.keys(hubs));
+
+	socket.on("get:bestScores", () => {
+		console.log("Sending best scores");
+		socket.emit("bestScores", bestScores);
+	});
 
 	// Handle the event for joining a room
 	socket.on('room:join', (roomName) => {
@@ -86,6 +103,10 @@ function handleDisconnect(socket) {
 
 function emptyTempFolder() {
 	const dir = './public/img/temp';
+	if (!fs.existsSync(dir)) {
+		fs.mkdirSync(dir);
+		return;
+	}
 	fs.readdir(dir, (err, files) => {
 		if (err) {
 			console.error('Could not list the directory.', err);
@@ -106,3 +127,26 @@ emptyTempFolder();
 // create a main hub
 hubs['main'] = new Hub({ maxSizeX: 10000, maxSizeY: 10000 }, io, 'main', 30, 5000, 10);
 hubs['main'].start();
+
+function updateScores(score) {
+	const samepseudo = bestScores.find((bestScore) => bestScore.name === score.name);
+	if (samepseudo) {
+		if (samepseudo.score < score.score) {
+			samepseudo.score = score.score;
+			samepseudo.date = score.date;
+		}
+	} else {
+		bestScores.push(score);
+	}
+	bestScores.sort((a, b) => b.score - a.score);
+	if (bestScores.length > SCORES_TO_KEEP) {
+		bestScores.length = SCORES_TO_KEEP;
+	}
+	fs.writeFileSync(bestScoreJsonFile, JSON.stringify(bestScores));
+}
+
+setInterval(() => {
+	Object.values(hubs).forEach(hub => {
+		hub.getScores().forEach(updateScores);
+	});
+}, 10000);

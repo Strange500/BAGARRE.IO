@@ -1,4 +1,4 @@
-import { updatePlayerSheet } from '../class/Player.js';
+import { updatePlayerSheet } from './Player.js';
 
 export const BonusType = {
 	DOUBLE_POINTS: 'Double Points',
@@ -6,7 +6,7 @@ export const BonusType = {
 	INVINCIBILITY: 'Invincibility',
 };
 
-export function applyBonusEffect(bonusType, player) {
+export function applyBonusEffect(bonusType, player, socket) {
 	console.log('Applying bonus:', bonusType, 'to player:', player);
 	if (!player) return;
 
@@ -26,10 +26,10 @@ export function applyBonusEffect(bonusType, player) {
 			}, 10000);
 			break;
 		case BonusType.SPEED_BOOST:
-			player.speed *= 3;
+			player.speedMultiplier = 3;
 			setTimeout(() => {
 				console.log('Suppression du bonus:', bonusType);
-				player.speed /= 3;
+				player.speedMultiplier = 1;
 				player.activeBonuses = player.activeBonuses.filter(
 					b => b.type !== bonusType
 				);
@@ -37,10 +37,10 @@ export function applyBonusEffect(bonusType, player) {
 			}, 20000);
 			break;
 		case BonusType.INVINCIBILITY:
-			player.invincible = true;
+			socket.emit('invincibility:start', player.id);
 			setTimeout(() => {
 				console.log('Suppression du bonus:', bonusType);
-				player.invincible = false;
+				socket.emit('invincibility:end', player.id);
 				player.activeBonuses = player.activeBonuses.filter(
 					b => b.type !== bonusType
 				);
