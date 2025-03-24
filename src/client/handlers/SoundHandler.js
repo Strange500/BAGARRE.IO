@@ -44,10 +44,6 @@ class SoundManager {
 		this.playSound('bonus');
 	}
 
-	playTheme() {
-		this.playSound('theme');
-	}
-
 	stopTheme() {
 		const theme = this.audioElements.theme;
 		theme.pause();
@@ -75,18 +71,17 @@ class SoundManager {
 		if (this.audioElements.star.paused) {
 			this.invincibleThemePlaying = true;
 			this.playSound('star');
-			setTimeout(() => {
-				this.invincibleThemePlaying = false;
-				this.stopStar();
-				this.forceThemeStart();
-			}, 10000);
+
 		}
 	}
 
 	stopStar() {
 		const star = this.audioElements.star;
+		this.invincibleThemePlaying = false;
+		if (star.paused) return;
 		star.pause();
 		star.currentTime = 0;
+		this.forceThemeStart();
 	}
 
 	playDelayedSound(soundKey, delay) {
