@@ -25,7 +25,7 @@ const lobbyForm=document.querySelectorAll(".choice-lobby");
 const startForm=document.querySelector(".start-menu");
 const buttonCredit=document.querySelector(".credit-button");
 const sheetCredit=document.querySelector(".credit-sheet");
-
+let startTime;
 const players = [];
 let foodManager;
 let killHandler;
@@ -218,26 +218,6 @@ function setupUser(socket) {
 				: new Player('Anonymous', map.width / 2, map.height / 2, 2937);
 		showMenu();
 		launchClientGame(socket);
-		/*setTimeout(() => {
-			const usrname = prompt('Enter your username: ');
-			socket.emit('init:player', {
-					name: usrname || 'Anonymous',
-					color: chooseColor,
-			});
-			socket.on('you:player', content => {
-				player = new Player(content.name, content.x, content.y, content.id);
-				player.image = content.image;
-				player.color = content.color;
-				player.size = content.size;
-				if (players.some(p => p.id === player.id)) {
-					return;
-				}
-				players.push(player);
-			});
-			socket.emit('init:go');
-		}, 10000);*/
-
-			//socket.emit('init:go');
 			console.log('Game is ready');
 			socket.on('game:start', () => {
 				updInter = setInterval(updateGame, 1000 / 60);
@@ -320,6 +300,7 @@ function launchClientGame() {
 		players.splice(players.indexOf(target), 1);
 		console.log(`Player ${killer.name} killed ${target.name}`);
 		if (target === player) {
+			soundManager.playLoseTheme();
 			console.log('You were killed');
 			clearInterval(updInter);
 			clearInterval(scInter);
@@ -419,7 +400,16 @@ const zoomStep = 0.1; // How much to zoom in/out each time
 function drawGameOverScreen() {
 	context.font = `${FONT_SIZE} ${FONT_FAMILY}`;
 	context.fillStyle = 'white';
-	context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+	context.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2 - 200);
+	// afficahge du temps je jeux, le score et la taille
+	context.font = `30px ${FONT_FAMILY}`;
+	const time = Math.round((performance.now() - startTime) / 1000);
+	const stringTime = `Game time: ${time} s`;
+	context.fillText(stringTime, canvas.width / 2 - 100, canvas.height / 2 + 50);
+	const score = Math.round(player.score.getTotalScore());
+	const size = Math.round(player.size);
+	context.fillText(`Score: ${score}`,canvas.width / 2 - 100, canvas.height / 2 + 100);
+	context.fillText(`Size: ${size}`, canvas.width / 2 - 100, canvas.height / 2 + 150);
 }
 
 function render() {
@@ -580,6 +570,7 @@ startForm.addEventListener('submit', event => {
 		players.push(player);
 	});
 	socket.emit('init:go');
+	startTime = performance.now();
 });
 buttonCredit.addEventListener('click',(event)=>{
 	startForm.style.display = 'none';
