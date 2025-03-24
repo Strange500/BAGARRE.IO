@@ -376,6 +376,10 @@ function launchClientGame() {
 		const listBonus = content;
 		showBonus(listBonus, player, socket);
 	});
+
+	socket.on("upd:food", (content)=>{
+		foodManager.update(content);
+	});
 }
 
 const times = [];

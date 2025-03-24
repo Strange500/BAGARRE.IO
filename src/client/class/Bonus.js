@@ -33,7 +33,7 @@ export function applyBonusEffect(bonusType, player, socket) {
 
 			setTimeout(() => {
 				console.log('Suppression du bonus:', bonusType);
-				player.speedMultiplier = 3;
+				player.speedMultiplier = 1;
 
 				const index = player.activeBonuses.findIndex(b => b.type === bonusType);
 				if (index !== -1) {

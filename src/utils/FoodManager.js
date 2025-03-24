@@ -90,6 +90,16 @@ export class FoodManager {
 				return null;
 	}
 
+	update(foodArray) {
+		this._foodArray = foodArray;
+		this._foodTree.clear();
+		this._foodArray.forEach(food => {
+			const f = new Food(food.bonus, food.x, food.y);
+			f.img = food.img;
+			this._foodTree.insert(f);
+		});
+	}
+
 
 
 	addFood(onAdd) {

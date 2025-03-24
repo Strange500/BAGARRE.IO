@@ -347,6 +347,9 @@ export class Hub {
 	async start() {
 		this._fillWithBots();
 		const loop = this.startGameLoop();
+		const updateFood = setInterval(() => {
+			this.sendToRoom('upd:food', this.foodManager.getAllFood());
+		}, 5000);
 		this.sendToRoom('game:start');
 		this.status = 'started';
 
