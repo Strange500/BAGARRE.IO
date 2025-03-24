@@ -94,6 +94,7 @@ h1 em {
     position: absolute;
     top: 20px;
     left: 50%;
+    transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.6);
     color: white;
     border-radius: 8px;
@@ -264,10 +265,6 @@ h1 em {
 }
 
 .choice-lobby {
-    position:absolute;
-    top: 50%;
-    bottom: 50%;
-    transform: translate(-50%,-50%);
     background: rgba(0, 0, 0, 0.6);
     color: white;
     border-radius: 8px;
@@ -275,8 +272,6 @@ h1 em {
     font-size: 14px;
     text-align: left;
     font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
-    width: 150px;
-    height: 75px;
 
 }
 
@@ -297,21 +292,15 @@ h1 em {
 }
 
 .create{
-    position:absolute;
-    top: 40%;
-    left: 55%;
-    transform: translate(-95%,-45%);
+
     background: rgba(0, 0, 0, 0.6);
     color: white;
     border-radius: 8px;
-    padding: 15px;
     font-size: 14px;
     text-align: left;
     font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
-    width: 215px;
-    height: 100px;
-
 }
+
 .credits{
     position:absolute;
     top: 500px;
@@ -326,6 +315,10 @@ h1 em {
     font-family: 'Motiva Sans', Helvetica, Arial, sans-serif;
     width: 75px;
     height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
 }
 
@@ -349,4 +342,25 @@ h1 em {
 .reload{
     justify-content: center;
     align-items: center;
+}
+
+.title {
+    font-size: 64px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    text-shadow: 0 0 50px #ff0000;
+    transition: transform 0.3s;
+}
+
+#menu  {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
 }

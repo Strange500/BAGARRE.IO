@@ -541,6 +541,7 @@ lobbyForm.forEach((f)=>{
 		const room=formData.get("lobby");
 		event.preventDefault();
 		startForm.style.display="block";
+		document.querySelector("#menu").style.display="none";
 		lobbyForm.forEach((lobby)=>{lobby.style.display="none"});
 		socket.emit('room:join', room);
 
@@ -557,6 +558,7 @@ startForm.addEventListener('submit', event => {
 	const username = formData.get('pseudo');
 	event.preventDefault();
 	startForm.style.display = 'none';
+	document.querySelector("#menu").style.display="none";
 	socket.emit('init:player', {
 		name: username || 'Anonymous',
 		color: chooseColor,
@@ -575,6 +577,7 @@ startForm.addEventListener('submit', event => {
 });
 buttonCredit.addEventListener('click',(event)=>{
 	startForm.style.display = 'none';
+	document.querySelector("#menu").style.display="none";
 	lobbyForm.forEach((lobby)=>lobby.style.display = 'none');
 	sheetCredit.style.display='block';
 });
