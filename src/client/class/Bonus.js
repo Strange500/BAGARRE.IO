@@ -21,20 +21,31 @@ export function applyBonusEffect(bonusType, player, socket) {
 				console.log('Suppression du bonus:', bonusType);
 				socket.emit('Double_point:end', player.id);
 				player.score.updateCoef(1);
-				player.activeBonuses = player.activeBonuses.filter(
-					b => b.type !== bonusType
-				);
+				const index = player.activeBonuses.findIndex(b => b.type === bonusType);
+				if (index !== -1) {
+					player.activeBonuses.splice(index, 1);
+				}
 				updatePlayerSheet(player);
 			}, 10000);
 			break;
 		case BonusType.SPEED_BOOST:
-			player.speedMultiplier = 3;
+			const baseIncrease = 0.5;
+			const diminishingFactor = Math.log10(player.speedMultiplier + 1) / 5;
+			const increase = baseIncrease * (1 - diminishingFactor);
+
+			const bonusApplied = player.speedMultiplier * increase;
+			player.speedMultiplier += bonusApplied;
+
 			setTimeout(() => {
 				console.log('Suppression du bonus:', bonusType);
-				player.speedMultiplier = 1;
-				player.activeBonuses = player.activeBonuses.filter(
-					b => b.type !== bonusType
-				);
+
+				const reductionFactor = 0.8;
+				player.speedMultiplier -= bonusApplied * reductionFactor;
+
+				const index = player.activeBonuses.findIndex(b => b.type === bonusType);
+				if (index !== -1) {
+					player.activeBonuses.splice(index, 1);
+				}
 				updatePlayerSheet(player);
 			}, 20000);
 			break;
@@ -43,11 +54,12 @@ export function applyBonusEffect(bonusType, player, socket) {
 			setTimeout(() => {
 				console.log('Suppression du bonus:', bonusType);
 				socket.emit('invincibility:end', player.id);
-				player.activeBonuses = player.activeBonuses.filter(
-					b => b.type !== bonusType
-				);
+				const index = player.activeBonuses.findIndex(b => b.type === bonusType);
+				if (index !== -1) {
+					player.activeBonuses.splice(index, 1);
+				}
 				updatePlayerSheet(player);
-			}, 5000);
+			}, 10000);
 			break;
 	}
 

@@ -625,3 +625,18 @@ ScoreBtn.addEventListener('click', () => {
 		ScoreDiv.style.display = 'none';
 	}
 });
+
+setInterval(() => {
+	if (!player) return;
+
+	players.forEach(otherPlayer => {
+		const distance = Math.hypot(
+			otherPlayer.x - player.x,
+			otherPlayer.y - player.y
+		);
+		const maxDistance = 100;
+		if (distance <= maxDistance && otherPlayer.invincibility) {
+			soundManager.playStarSound();
+		}
+	});
+}, 3000);
