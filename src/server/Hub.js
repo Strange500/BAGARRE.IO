@@ -3,7 +3,7 @@ import { Player } from '../client/class/Player.js';
 import { Bot } from '../client/class/Bot.js';
 import { Food } from '../client/class/Food.js';
 import { RandomBonus } from '../client/handlers/BonusHandler.js';
-import { movePlayer } from './movement.js';
+import { getMaxSpeed, movePlayer } from './movement.js';
 import fs from 'fs';
 import { FoodManager } from '../utils/FoodManager.js';
 import { KillHandler } from '../utils/KillHandler.js';
@@ -252,8 +252,13 @@ export class Hub {
 		socket.on('player:move', content => {
 			const player = this.players.find(p => p.id === content.playerId);
 			if (player) {
-				player.x = content.x;
-				player.y = content.y;
+				if (Math.hypot(content.x - player.x, content.y - player.y) <= getMaxSpeed(player)*3*1.2) {
+					player.x = content.x;
+					player.y = content.y;
+				} else {
+					console.log('Player', player.name, 'is cheating');
+					this.killHandler.killPlayer(player, new Player('Cheater', 0, 0, 'cheater'), this._onKill);
+				}
 			}
 			this.sendToRoom('player:moved', content);
 		});

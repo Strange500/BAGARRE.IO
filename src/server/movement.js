@@ -4,6 +4,13 @@ const INERTIA = 0.07;
 export const MAX_SPEED = 5;
 export const SPEED_LEVEL = 0.1;
 
+
+export function getMaxSpeed(p) {
+	const decayFactor = 0.99;
+	const speedFactor = Math.max(0.1,Math.pow(decayFactor, (p.size - START_SIZE)));
+	return MAX_SPEED * speedFactor;
+}
+
 export function movePlayer(player, map) {
 	const angleDiff = player.targetDeg - player.deg;
 	if (Math.abs(angleDiff) > Math.PI) {

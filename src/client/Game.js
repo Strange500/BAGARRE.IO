@@ -76,14 +76,6 @@ function requestRoomChoices(socket) {
 		rooms.forEach((room)=>{
 			allRoom.innerHTML+=`<option value="${room}">${room}</option>`
 		});
-		/*const room = prompt('Enter room name: ' + rooms.join(', '));
-		socket.emit('room:join', room);
-
-		socket.on('room:joined', () => {
-			console.log('Joined room:', room);
-			killHandler = new KillHandler();
-			setupUser(socket);
-		});*/
 	});
 }
 
