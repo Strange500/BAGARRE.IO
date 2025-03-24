@@ -26,6 +26,7 @@ export class GameMap {
         const xLimit = Math.min(x + width, this.width);
         const xStart = Math.max(x - width, 0);
         const yStart = Math.max(y - height, 0);
+        context.strokeStyle = 'white';
         for (let i = 0; i < yLimit; i+=100) {
             if (i < y - height) continue;
             context.beginPath();
@@ -52,9 +53,9 @@ export class GameMap {
         foods.forEach(food => {
                 context.beginPath();
                 context.arc(food.x, food.y, food.size, 0, 2 * Math.PI);
-                context.fillStyle = 'blue';
+                context.fillStyle = 'red';
                 context.fill();
-                context.strokeStyle = 'black';
+                context.strokeStyle = 'white';
                 context.stroke();
         });
     }
@@ -84,7 +85,7 @@ export class GameMap {
             } else {
                 context.fill();
             }
-            context.strokeStyle = 'black';
+            context.strokeStyle = 'white';
             context.stroke();
             context.beginPath();
             return true;
