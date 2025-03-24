@@ -29,18 +29,11 @@ export function applyBonusEffect(bonusType, player, socket) {
 			}, 10000);
 			break;
 		case BonusType.SPEED_BOOST:
-			const baseIncrease = 0.5;
-			const diminishingFactor = Math.log10(player.speedMultiplier + 1) / 5;
-			const increase = baseIncrease * (1 - diminishingFactor);
-
-			const bonusApplied = player.speedMultiplier * increase;
-			player.speedMultiplier += bonusApplied;
+			player.speedMultiplier = 3;
 
 			setTimeout(() => {
 				console.log('Suppression du bonus:', bonusType);
-
-				const reductionFactor = 0.8;
-				player.speedMultiplier -= bonusApplied * reductionFactor;
+				player.speedMultiplier = 3;
 
 				const index = player.activeBonuses.findIndex(b => b.type === bonusType);
 				if (index !== -1) {
