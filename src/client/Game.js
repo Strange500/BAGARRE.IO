@@ -17,7 +17,6 @@ import { FoodManager } from '../utils/FoodManager.js';
 import { KillHandler } from '../utils/KillHandler.js';
 import {PlayerPersonalisationHandler} from "./handlers/PlayerPersonalisationHandler";
 
-
 export const canvas = document.querySelector('.gameCanvas');
 const fpsDiv = document.querySelector('#fps');
 const pingDiv = document.querySelector('#ping');
@@ -58,7 +57,13 @@ function initializeGame() {
 }
 
 function setupSocket() {
-	socket = io(`${window.location.hostname}:3000`);
+	let url;
+	if (socketUrl) {
+		url = socketUrl;
+	} else {
+		url = `${window.location.hostname}:3000`;
+	}
+	socket = io(`${url}`);
 	socket.on('connect', () => {
 		console.log('Connected to server');
 		requestRoomChoices(socket);
